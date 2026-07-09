@@ -1,0 +1,10 @@
+graphify-out
+.playwright-cli
+deploy
+scripts
+.env
+.env.*
+!.env.example
+AGENTS.md
+CLAUDE.md
+README.md

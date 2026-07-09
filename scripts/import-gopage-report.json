@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-07-09T18:25:34.767Z",
+  "dryRun": false,
+  "totalFetched": 311,
+  "imported": 311,
+  "skipped": 0,
+  "errors": [],
+  "missingDescription": [],
+  "failedImages": [],
+  "externalImageUrls": [],
+  "unmappedVariations": [],
+  "duplicateSlugs": [],
+  "finishedAt": "2026-07-09T18:35:21.382Z"
+}

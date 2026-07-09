@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+/* Logo brand — Heavy only (matches reference àvilla) */
+@font-face {
+  font-family: "Bauhaus Std";
+  src: url("/fonts/itc-bauhaus/BauhausStd-Heavy.woff2") format("woff2"),
+    url("/fonts/itc-bauhaus/BauhausStd-Heavy.woff") format("woff"),
+    url("/fonts/itc-bauhaus/BauhausStd-Heavy.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bauhaus Std";
+  src: url("/fonts/itc-bauhaus/BauhausStd-Bold.woff2") format("woff2"),
+    url("/fonts/itc-bauhaus/BauhausStd-Bold.woff") format("woff"),
+    url("/fonts/itc-bauhaus/BauhausStd-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #f7f3ee;
+  --bg-elevated: #fffdf9;
+  --ink: #1c1714;
+  --muted: #7a6f66;
+  --line: #e4dcd3;
+  --accent: #8c5a46;
+  --sand: #ebe4db;
+  --sand-hover: #e0d6c9;
+  --font-brand: "Bauhaus Std", sans-serif;
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+  --light-a: rgba(140, 90, 70, 0.18);
+  --light-b: rgba(212, 181, 160, 0.22);
+  --light-c: rgba(255, 255, 255, 0.35);
+}
+
+html.dark {
+  --bg: #161210;
+  --bg-elevated: #1f1a16;
+  --ink: #f3ebe3;
+  --muted: #a89a8e;
+  --line: #3a322c;
+  --accent: #c4896f;
+  --sand: #2a241f;
+  --sand-hover: #352e28;
+  --light-a: rgba(196, 137, 111, 0.16);
+  --light-b: rgba(255, 220, 180, 0.1);
+  --light-c: rgba(255, 255, 255, 0.06);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(140, 90, 70, 0.25);
+}
+
+.logo-brand {
+  font-family: "Bauhaus Std", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  font-size: 1.75rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 768px) {
+  .logo-brand {
+    font-size: 2.15rem;
+  }
+}
+
+/* Slow drifting ambient lights */
+.bg-lights {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-lights__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+  opacity: 0.9;
+}
+
+.bg-lights__blob--a {
+  width: min(55vw, 520px);
+  height: min(55vw, 520px);
+  top: -8%;
+  left: -6%;
+  background: radial-gradient(circle, var(--light-a) 0%, transparent 70%);
+  animation: light-drift-a 32s ease-in-out infinite;
+}
+
+.bg-lights__blob--b {
+  width: min(45vw, 420px);
+  height: min(45vw, 420px);
+  top: 35%;
+  right: -8%;
+  background: radial-gradient(circle, var(--light-b) 0%, transparent 70%);
+  animation: light-drift-b 40s ease-in-out infinite;
+}
+
+.bg-lights__blob--c {
+  width: min(40vw, 360px);
+  height: min(40vw, 360px);
+  bottom: -10%;
+  left: 30%;
+  background: radial-gradient(circle, var(--light-c) 0%, transparent 70%);
+  animation: light-drift-c 28s ease-in-out infinite;
+}
+
+@keyframes light-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(12%, 18%) scale(1.12);
+  }
+}
+
+@keyframes light-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-16%, -10%) scale(1.08);
+  }
+}
+
+@keyframes light-drift-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8%, -14%) scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-lights__blob {
+    animation: none;
+  }
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+}
+
+.aurora-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}

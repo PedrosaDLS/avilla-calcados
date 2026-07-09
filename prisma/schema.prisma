@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  cart         Cart?
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  description String         @default("")
+  price       Decimal        @db.Decimal(10, 2)
+  promoPrice  Decimal?       @db.Decimal(10, 2)
+  isLaunch    Boolean        @default(false)
+  viewCount   Int            @default(0)
+  categoryId  String
+  category    Category       @relation(fields: [categoryId], references: [id])
+  colors      ProductColor[]
+  sizes       ProductSize[]
+  images      ProductImage[]
+  cartItems   CartItem[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model ProductColor {
+  id        String         @id @default(cuid())
+  productId String
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  hex       String?
+  images    ProductImage[]
+  cartItems CartItem[]
+}
+
+model ProductSize {
+  id        String     @id @default(cuid())
+  productId String
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String
+  cartItems CartItem[]
+
+  @@unique([productId, size])
+}
+
+model ProductImage {
+  id        String        @id @default(cuid())
+  productId String
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  sortOrder Int           @default(0)
+  colorId   String?
+  color     ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String        @id @default(cuid())
+  cartId    String
+  cart      Cart          @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  colorId   String?
+  color     ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
+  sizeId    String?
+  size      ProductSize?  @relation(fields: [sizeId], references: [id], onDelete: SetNull)
+  qty       Int           @default(1)
+
+  @@unique([cartId, productId, colorId, sizeId])
+}
