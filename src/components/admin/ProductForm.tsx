@@ -1,103 +1,158 @@
 "use client";
 
-import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { useCallback, useMemo, useState } from "react";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
+import { BasicInfoStep } from "./product-form/BasicInfoStep";
+import { FormStepper } from "./product-form/FormStepper";
+import { ImagesStep } from "./product-form/ImagesStep";
+import { ReviewStep } from "./product-form/ReviewStep";
+import { SuccessScreen } from "./product-form/SuccessScreen";
+import type { Category, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
+import { DEFAULT_SIZES } from "./product-form/types";
+import { VariantsStep } from "./product-form/VariantsStep";
+import {
+  getAllSizes,
+  mapApiError,
+  validateBasicInfo,
+  validateImages,
+  validateVariants,
+  type StepErrors,
+} from "./product-form/validation";
 
-type Category = { id: string; name: string };
-type Initial = {
-  id?: string;
-  name?: string;
-  description?: string;
-  price?: number;
-  promoPrice?: number | null;
-  isLaunch?: boolean;
-  categoryId?: string;
-  colors?: { name: string; hex: string | null }[];
-  sizes?: string[];
-  images?: { url: string; colorName?: string | null }[];
-};
+function buildInitialState(
+  categories: Category[],
+  initial?: ProductFormInitial
+): ProductFormState {
+  const allSizes = initial?.sizes ?? [];
+  const sizes = allSizes.filter((s) => DEFAULT_SIZES.includes(s));
+  const extraSizes = allSizes.filter((s) => !DEFAULT_SIZES.includes(s)).join(", ");
+  const colors = initial?.colors?.length
+    ? initial.colors
+    : [{ name: "", hex: "#d4b5a0" }];
+
+  return {
+    name: initial?.name ?? "",
+    description: initial?.description ?? "",
+    price: initial?.price != null ? String(initial.price) : "",
+    promoPrice: initial?.promoPrice != null ? String(initial.promoPrice) : "",
+    isLaunch: initial?.isLaunch ?? false,
+    categoryId: initial?.categoryId ?? categories[0]?.id ?? "",
+    colors,
+    sizes,
+    extraSizes,
+    images: initial?.images ?? [],
+  };
+}
+
+function hasChanges(state: ProductFormState, baseline: ProductFormState): boolean {
+  return JSON.stringify(state) !== JSON.stringify(baseline);
+}
 
 export function ProductForm({
   categories,
   initial,
 }: {
   categories: Category[];
-  initial?: Initial;
+  initial?: ProductFormInitial;
 }) {
   const router = useRouter();
   const isEdit = !!initial?.id;
-  const [name, setName] = useState(initial?.name ?? "");
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [price, setPrice] = useState(String(initial?.price ?? ""));
-  const [promoPrice, setPromoPrice] = useState(
-    initial?.promoPrice != null ? String(initial.promoPrice) : ""
+  const baseline = useMemo(
+    () => buildInitialState(categories, initial),
+    [categories, initial]
   );
-  const [isLaunch, setIsLaunch] = useState(initial?.isLaunch ?? false);
-  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? categories[0]?.id ?? "");
-  const [colorsText, setColorsText] = useState(
-    (initial?.colors ?? [])
-      .map((c) => (c.hex ? `${c.name}|${c.hex}` : c.name))
-      .join("\n")
-  );
-  const [sizesText, setSizesText] = useState((initial?.sizes ?? []).join(", "));
-  const [images, setImages] = useState<{ url: string; colorName?: string | null }[]>(
-    initial?.images ?? []
-  );
+  const [state, setState] = useState<ProductFormState>(() => baseline);
+  const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState<StepErrors>({});
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [savedSlug, setSavedSlug] = useState<string | null>(null);
+
+  const onChange = useCallback(
+    <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
+      setState((prev) => ({ ...prev, [key]: value }));
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[key as string];
+        return next;
+      });
+    },
+    []
+  );
+
+  function validateStep(current: number): boolean {
+    let stepErrors: StepErrors = {};
+    if (current === 1) stepErrors = validateBasicInfo(state);
+    if (current === 2) stepErrors = validateVariants(state);
+    if (current === 3) stepErrors = validateImages(state);
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
+  }
+
+  function goNext() {
+    if (!validateStep(step)) return;
+    setStep((s) => Math.min(4, s + 1));
+  }
+
+  function goBack() {
+    setErrors({});
+    setStep((s) => Math.max(1, s - 1));
+  }
+
+  function handleCancel() {
+    if (hasChanges(state, baseline)) {
+      if (!confirm("Descartar alterações e voltar à lista?")) return;
+    }
+    router.push("/admin/modelos");
+  }
 
   async function uploadFiles(files: FileList | null) {
     if (!files?.length) return;
-    setBusy(true);
+    setUploading(true);
+    setSaveError("");
     try {
-      const uploaded: { url: string }[] = [];
+      const uploaded: ImageEntry[] = [];
       for (const file of Array.from(files)) {
         const fd = new FormData();
         fd.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Falha no upload");
-        uploaded.push({ url: data.url });
+        uploaded.push({ url: data.url, colorName: null });
       }
-      setImages((prev) => [...prev, ...uploaded]);
+      setState((prev) => ({ ...prev, images: [...prev.images, ...uploaded] }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro upload");
+      setSaveError(e instanceof Error ? e.message : "Erro no upload");
     } finally {
-      setBusy(false);
+      setUploading(false);
     }
   }
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
+    if (!validateStep(3)) {
+      setStep(3);
+      return;
+    }
+
     setBusy(true);
-    setError("");
+    setSaveError("");
 
-    const colors = colorsText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [n, hex] = line.split("|").map((s) => s.trim());
-        return { name: n, hex: hex || null };
-      });
-
-    const sizes = sizesText
-      .split(/[,\s]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const colors = state.colors
+      .map((c) => ({ name: c.name.trim(), hex: c.hex || null }))
+      .filter((c) => c.name);
 
     const payload = {
-      name,
-      description,
-      price: Number(price),
-      promoPrice: promoPrice ? Number(promoPrice) : null,
-      isLaunch,
-      categoryId,
+      name: state.name.trim(),
+      description: state.description.trim(),
+      price: Number(state.price),
+      promoPrice: state.promoPrice.trim() ? Number(state.promoPrice) : null,
+      isLaunch: state.isLaunch,
+      categoryId: state.categoryId,
       colors,
-      sizes,
-      images: images.map((img, i) => ({
+      sizes: getAllSizes(state),
+      images: state.images.map((img, i) => ({
         url: img.url,
         sortOrder: i,
         colorName: img.colorName ?? null,
@@ -105,124 +160,111 @@ export function ProductForm({
     };
 
     try {
-      const res = await fetch(isEdit ? `/api/products/${initial!.id}` : "/api/products", {
-        method: isEdit ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        isEdit ? `/api/products/${initial!.id}` : "/api/products",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao salvar");
-      router.push("/admin/modelos");
+      setSavedSlug(data.slug);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro");
+      setSaveError(mapApiError(err instanceof Error ? err.message : "Erro"));
     } finally {
       setBusy(false);
     }
   }
 
+  function resetForAnother() {
+    setState(buildInitialState(categories));
+    setStep(1);
+    setErrors({});
+    setSaveError("");
+    setSavedSlug(null);
+  }
+
+  if (savedSlug) {
+    return (
+      <SuccessScreen
+        slug={savedSlug}
+        isEdit={isEdit}
+        onCreateAnother={resetForAnother}
+      />
+    );
+  }
+
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        placeholder="Nome do modelo"
-        className="w-full border border-[var(--line)] bg-transparent px-4 py-3"
-      />
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        rows={4}
-        placeholder="Descrição"
-        className="w-full border border-[var(--line)] bg-transparent px-4 py-3"
-      />
-      <div className="grid grid-cols-2 gap-3">
-        <input
-          type="number"
-          step="0.01"
-          required
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="Preço"
-          className="w-full border border-[var(--line)] bg-transparent px-4 py-3"
+    <div className="pb-28 md:pb-8">
+      <FormStepper currentStep={step} />
+
+      {step === 1 && (
+        <BasicInfoStep
+          state={state}
+          categories={categories}
+          errors={errors}
+          onChange={onChange}
         />
-        <input
-          type="number"
-          step="0.01"
-          value={promoPrice}
-          onChange={(e) => setPromoPrice(e.target.value)}
-          placeholder="Preço promocional"
-          className="w-full border border-[var(--line)] bg-transparent px-4 py-3"
+      )}
+      {step === 2 && (
+        <VariantsStep state={state} errors={errors} onChange={onChange} />
+      )}
+      {step === 3 && (
+        <ImagesStep
+          state={state}
+          errors={errors}
+          uploading={uploading}
+          onImagesChange={(images) => onChange("images", images)}
+          onUpload={uploadFiles}
         />
-      </div>
-      <select
-        value={categoryId}
-        onChange={(e) => setCategoryId(e.target.value)}
-        className="w-full border border-[var(--line)] bg-transparent px-4 py-3"
-        required
-      >
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={isLaunch} onChange={(e) => setIsLaunch(e.target.checked)} />
-        Lançamento
-      </label>
-      <div>
-        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-          Cores (uma por linha: Nome ou Nome|#hex)
+      )}
+      {step === 4 && <ReviewStep state={state} categories={categories} />}
+
+      {saveError && (
+        <p className="mt-4 text-sm text-red-700" role="alert">
+          {saveError}
         </p>
-        <textarea
-          value={colorsText}
-          onChange={(e) => setColorsText(e.target.value)}
-          rows={3}
-          placeholder={"Preto|#111111\nNude|#d4b5a0"}
-          className="w-full border border-[var(--line)] bg-transparent px-4 py-3"
-        />
-      </div>
-      <div>
-        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-          Numerações (separadas por vírgula)
-        </p>
-        <input
-          value={sizesText}
-          onChange={(e) => setSizesText(e.target.value)}
-          placeholder="34, 35, 36, 37, 38, 39"
-          className="w-full border border-[var(--line)] bg-transparent px-4 py-3"
-        />
-      </div>
-      <div>
-        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Imagens</p>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => uploadFiles(e.target.files)}
-          className="w-full text-sm"
-        />
-        <div className="mt-3 flex flex-wrap gap-2">
-          {images.map((img, i) => (
-            <div key={img.url} className="relative h-24 w-20 overflow-hidden bg-[var(--sand)]">
-              <Image src={img.url} alt="" fill className="object-cover" sizes="80px" />
+      )}
+
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-[var(--line)] bg-[var(--bg)]/95 px-4 py-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0">
+        <div className="mx-auto flex max-w-5xl flex-col gap-2 sm:flex-row sm:justify-between">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 rounded-full border border-[var(--line)] px-4 py-2.5 text-sm sm:flex-none"
+            >
+              Cancelar
+            </button>
+            {step > 1 && (
               <button
                 type="button"
-                className="absolute right-1 top-1 bg-black/60 px-1 text-xs text-white"
-                onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                onClick={goBack}
+                className="flex-1 rounded-full border border-[var(--line)] px-4 py-2.5 text-sm sm:flex-none"
               >
-                ×
+                Voltar
               </button>
-            </div>
-          ))}
+            )}
+          </div>
+          {step < 4 ? (
+            <RoundedSlideButton type="button" onClick={goNext} className="w-full sm:w-auto">
+              Continuar
+            </RoundedSlideButton>
+          ) : (
+            <RoundedSlideButton
+              type="button"
+              disabled={busy}
+              onClick={handleSubmit}
+              className="w-full sm:w-auto"
+            >
+              {busy ? "Publicando..." : isEdit ? "Atualizar modelo" : "Publicar modelo"}
+            </RoundedSlideButton>
+          )}
         </div>
       </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
-      <RoundedSlideButton type="submit" disabled={busy} className="w-full">
-        {busy ? "Salvando..." : isEdit ? "Atualizar modelo" : "Criar modelo"}
-      </RoundedSlideButton>
-    </form>
+    </div>
   );
 }

@@ -17,7 +17,10 @@ export default async function EditModeloPage({ params }: Props) {
 
   return (
     <div>
-      <h2 className="mb-6 text-xl font-medium">Editar modelo</h2>
+      <h2 className="text-xl font-medium">Editar modelo</h2>
+      <p className="mt-2 mb-6 text-sm text-[var(--muted)]">
+        Atualize as informações em etapas e revise antes de salvar.
+      </p>
       <ProductForm
         categories={categories}
         initial={{
@@ -30,7 +33,12 @@ export default async function EditModeloPage({ params }: Props) {
           categoryId: product.categoryId,
           colors: product.colors.map((c) => ({ name: c.name, hex: c.hex })),
           sizes: product.sizes.map((s) => s.size),
-          images: product.images.map((i) => ({ url: i.url })),
+          images: product.images.map((i) => ({
+            url: i.url,
+            colorName: i.colorId
+              ? product.colors.find((c) => c.id === i.colorId)?.name ?? null
+              : null,
+          })),
         }}
       />
     </div>
