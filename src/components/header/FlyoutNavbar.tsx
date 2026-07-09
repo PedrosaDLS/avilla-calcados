@@ -12,6 +12,55 @@ const links = [
   { href: "/colecao", label: "Coleção" },
 ];
 
+function firstName(name?: string | null) {
+  if (!name?.trim()) return "visitante";
+  return name.trim().split(/\s+/)[0];
+}
+
+function LogoutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 17l5-5-5-5M21 12H9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function UserSessionActions({
+  name,
+  onLogout,
+  className = "",
+}: {
+  name?: string | null;
+  onLogout: () => void;
+  className?: string;
+}) {
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <span className="text-sm text-[var(--ink)]">Olá, {firstName(name)}</span>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--muted)] transition hover:bg-[var(--sand)] hover:text-[var(--ink)]"
+        aria-label="Sair da conta"
+      >
+        <LogoutIcon />
+      </button>
+    </div>
+  );
+}
+
 export function FlyoutNavbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -82,13 +131,10 @@ export function FlyoutNavbar() {
             </Link>
           )}
           {session ? (
-            <button
-              type="button"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-sm text-[var(--muted)] hover:text-[var(--ink)]"
-            >
-              Sair
-            </button>
+            <UserSessionActions
+              name={session.user?.name}
+              onLogout={() => signOut({ callbackUrl: "/" })}
+            />
           ) : (
             <Link href="/login" className="text-sm text-[var(--muted)] hover:text-[var(--ink)]">
               Entrar
@@ -139,16 +185,14 @@ export function FlyoutNavbar() {
                 </Link>
               )}
               {session ? (
-                <button
-                  type="button"
-                  className="py-3 text-left text-base"
-                  onClick={() => {
+                <UserSessionActions
+                  name={session.user?.name}
+                  className="py-3"
+                  onLogout={() => {
                     setOpen(false);
                     signOut({ callbackUrl: "/" });
                   }}
-                >
-                  Sair
-                </button>
+                />
               ) : (
                 <Link href="/login" onClick={() => setOpen(false)} className="py-3 text-base">
                   Entrar
