@@ -32,6 +32,33 @@ function useIsDark() {
   return dark;
 }
 
+function StaticSquare({ product }: { product: HeroProduct | undefined }) {
+  if (!product) {
+    return <div className="bg-[var(--sand)]" />;
+  }
+
+  return (
+    <Link
+      href={`/modelo/${product.slug}`}
+      className="relative block h-full overflow-hidden bg-[var(--bg-elevated)]"
+    >
+      {product.imageUrl ? (
+        <Image
+          src={product.imageUrl}
+          alt={product.name}
+          fill
+          className="object-cover"
+          sizes="(max-width:768px) 45vw, 240px"
+        />
+      ) : (
+        <div className="flex h-full min-h-[120px] items-center justify-center bg-[var(--sand)] text-sm text-[var(--muted)]">
+          {product.name}
+        </div>
+      )}
+    </Link>
+  );
+}
+
 function ShuffleSquare({
   products,
   intervalMs,
@@ -115,7 +142,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
+        className="pointer-events-none absolute inset-0 z-[1] hidden h-full w-full md:block"
       >
         <LiquidEther
           key={dark ? "dark" : "light"}
@@ -142,30 +169,44 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
 
       <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 px-4 pt-6 pb-12 md:min-h-[calc(100vh-5rem)] md:grid-cols-2 md:px-6 md:pt-8 md:pb-16">
         <div className="relative text-[var(--ink)]">
-          <BlurText
-            text="Calçados femininos"
-            delay={80}
-            animateBy="words"
-            direction="top"
-            as="p"
-            className="mb-4 text-xs uppercase tracking-[0.35em] text-[var(--muted)]"
-          />
-          <BlurText
-            text="Elegância que caminha com você"
-            delay={120}
-            animateBy="words"
-            direction="top"
-            as="h1"
-            className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)] md:text-6xl"
-          />
-          <BlurText
-            text="Peças selecionadas para o cotidiano sofisticado. Descubra a coleção Àvilla — forma, conforto e presença em cada passo."
-            delay={40}
-            animateBy="words"
-            direction="top"
-            as="p"
-            className="mt-5 max-w-md text-base leading-relaxed text-[var(--muted)] md:text-lg"
-          />
+          <div className="md:hidden">
+            <p className="mb-4 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">
+              Calçados femininos
+            </p>
+            <h1 className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)]">
+              Elegância que caminha com você
+            </h1>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-[var(--muted)]">
+              Peças selecionadas para o cotidiano sofisticado. Descubra a coleção Àvilla — forma,
+              conforto e presença em cada passo.
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <BlurText
+              text="Calçados femininos"
+              delay={80}
+              animateBy="words"
+              direction="top"
+              as="p"
+              className="mb-4 text-xs uppercase tracking-[0.35em] text-[var(--muted)]"
+            />
+            <BlurText
+              text="Elegância que caminha com você"
+              delay={120}
+              animateBy="words"
+              direction="top"
+              as="h1"
+              className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)] md:text-6xl"
+            />
+            <BlurText
+              text="Peças selecionadas para o cotidiano sofisticado. Descubra a coleção Àvilla — forma, conforto e presença em cada passo."
+              delay={40}
+              animateBy="words"
+              direction="top"
+              as="p"
+              className="mt-5 max-w-md text-base leading-relaxed text-[var(--muted)] md:text-lg"
+            />
+          </div>
           <div className="relative mt-8">
             <RoundedSlideButton href="/colecao" variant="primary">
               Ver coleção
@@ -173,7 +214,15 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
           </div>
         </div>
 
-        <div className="grid aspect-square max-h-[520px] grid-cols-2 grid-rows-2 gap-3 md:gap-4">
+        <div className="grid aspect-square max-h-[520px] grid-cols-2 grid-rows-2 gap-3 md:hidden">
+          {squares.map((list, i) => (
+            <StaticSquare key={i} product={list[0] ?? pool[0]} />
+          ))}
+          {!pool.length &&
+            [0, 1, 2, 3].map((i) => <div key={i} className="bg-[var(--sand)]" />)}
+        </div>
+
+        <div className="hidden aspect-square max-h-[520px] grid-cols-2 grid-rows-2 gap-4 md:grid">
           {squares.map((list, i) => (
             <ShuffleSquare key={i} products={list.length ? list : pool} intervalMs={intervals[i]} />
           ))}

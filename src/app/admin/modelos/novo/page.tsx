@@ -7,7 +7,7 @@ export default async function NovoModeloPage() {
     <div>
       <h2 className="text-xl font-medium">Novo modelo</h2>
       <p className="mt-2 mb-6 text-sm text-[var(--muted)]">
-        Preencha o cadastro na página abaixo e revise antes de publicar.
+        Preencha todos os campos abaixo e revise ao final antes de publicar.
       </p>
       <ProductForm categories={categories} />
     </div>

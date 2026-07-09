@@ -113,6 +113,10 @@ export function FlyoutNavbar() {
           ))}
         </div>
 
+        <div className="flex items-center md:hidden">
+          <ThemeToggle />
+        </div>
+
         <Link
           href="/"
           className="logo-brand absolute left-1/2 -translate-x-1/2 text-[var(--ink)]"
@@ -198,9 +202,6 @@ export function FlyoutNavbar() {
                   Entrar
                 </Link>
               )}
-              <div className="pt-2">
-                <ThemeToggle className="w-full justify-center" />
-              </div>
             </div>
           </motion.div>
         )}

@@ -5,11 +5,10 @@ import { useCallback, useMemo, useState } from "react";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { parseApiResponse } from "./product-form/api";
 import { BasicInfoStep } from "./product-form/BasicInfoStep";
-import { FormTabs } from "./product-form/FormTabs";
 import { ImagesStep } from "./product-form/ImagesStep";
 import { ReviewStep } from "./product-form/ReviewStep";
 import { SuccessScreen } from "./product-form/SuccessScreen";
-import type { Category, FormTab, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
+import type { Category, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
 import { DEFAULT_SIZES } from "./product-form/types";
 import { VariantsStep } from "./product-form/VariantsStep";
 import {
@@ -60,7 +59,6 @@ export function ProductForm({
     [categories, initial]
   );
   const [state, setState] = useState<ProductFormState>(() => baseline);
-  const [tab, setTab] = useState<FormTab>("form");
   const [errors, setErrors] = useState<StepErrors>({});
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -78,20 +76,6 @@ export function ProductForm({
     },
     []
   );
-
-  function handleTabChange(next: FormTab) {
-    if (next === "review") {
-      const allErrors = validateAll(state);
-      setErrors(allErrors);
-      if (Object.keys(allErrors).length > 0) {
-        setSaveError("Corrija os campos destacados antes de revisar.");
-        setTab("form");
-        return;
-      }
-      setSaveError("");
-    }
-    setTab(next);
-  }
 
   function handleCancel() {
     if (hasChanges(state, baseline)) {
@@ -131,7 +115,7 @@ export function ProductForm({
     const allErrors = validateAll(state);
     setErrors(allErrors);
     if (Object.keys(allErrors).length > 0) {
-      setTab("form");
+      setSaveError("Corrija os campos destacados antes de publicar.");
       return;
     }
 
@@ -183,7 +167,6 @@ export function ProductForm({
 
   function resetForAnother() {
     setState(buildInitialState(categories));
-    setTab("form");
     setErrors({});
     setSaveError("");
     setSavedSlug(null);
@@ -200,91 +183,70 @@ export function ProductForm({
   }
 
   return (
-    <div className="pb-28 md:pb-8">
-      <FormTabs activeTab={tab} onTabChange={handleTabChange} />
+    <div className="pb-8">
+      <div className="space-y-10">
+        <section>
+          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            Informações
+          </h3>
+          <BasicInfoStep
+            state={state}
+            categories={categories}
+            errors={errors}
+            onChange={onChange}
+          />
+        </section>
 
-      {tab === "form" ? (
-        <div className="space-y-10">
-          <section>
-            <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-              Informações
-            </h3>
-            <BasicInfoStep
-              state={state}
-              categories={categories}
-              errors={errors}
-              onChange={onChange}
-            />
-          </section>
+        <section>
+          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            Cores e numerações
+          </h3>
+          <VariantsStep state={state} errors={errors} onChange={onChange} />
+        </section>
 
-          <section>
-            <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-              Cores e numerações
-            </h3>
-            <VariantsStep state={state} errors={errors} onChange={onChange} />
-          </section>
+        <section>
+          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            Fotos
+          </h3>
+          <ImagesStep
+            state={state}
+            errors={errors}
+            uploading={uploading}
+            onImagesChange={(images) => onChange("images", images)}
+            onUpload={uploadFiles}
+          />
+        </section>
 
-          <section>
-            <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-              Fotos
-            </h3>
-            <ImagesStep
-              state={state}
-              errors={errors}
-              uploading={uploading}
-              onImagesChange={(images) => onChange("images", images)}
-              onUpload={uploadFiles}
-            />
-          </section>
-        </div>
-      ) : (
-        <ReviewStep state={state} categories={categories} />
-      )}
+        <section id="revisao" className="scroll-mt-6 border-t border-[var(--line)] pt-10">
+          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            Revisão
+          </h3>
+          <ReviewStep state={state} categories={categories} />
+        </section>
+      </div>
 
       {saveError && (
-        <p className="mt-4 text-sm text-red-700" role="alert">
+        <p className="mt-6 text-sm text-red-700" role="alert">
           {saveError}
         </p>
       )}
 
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-[var(--line)] bg-[var(--bg)]/95 px-4 py-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0">
-        <div className="mx-auto flex max-w-5xl flex-col gap-2 sm:flex-row sm:justify-between">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="rounded-full border border-[var(--line)] px-4 py-2.5 text-sm"
-          >
-            Cancelar
-          </button>
-
-          {tab === "form" ? (
-            <RoundedSlideButton
-              type="button"
-              onClick={() => handleTabChange("review")}
-              className="w-full sm:w-auto"
-            >
-              Ir para revisão
-            </RoundedSlideButton>
-          ) : (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => setTab("form")}
-                className="rounded-full border border-[var(--line)] px-4 py-2.5 text-sm"
-              >
-                Voltar ao cadastro
-              </button>
-              <RoundedSlideButton
-                type="button"
-                disabled={busy}
-                onClick={handleSubmit}
-                className="w-full sm:w-auto"
-              >
-                {busy ? "Publicando..." : isEdit ? "Atualizar modelo" : "Publicar modelo"}
-              </RoundedSlideButton>
-            </div>
-          )}
-        </div>
+      <div className="mt-8 flex flex-col gap-3 border-t border-[var(--line)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="rounded-full border border-[var(--line)] px-4 py-2.5 text-sm"
+        >
+          Cancelar
+        </button>
+        <RoundedSlideButton
+          type="button"
+          disabled={busy}
+          onClick={handleSubmit}
+          className="w-full sm:w-auto"
+        >
+          {busy ? "Publicando..." : isEdit ? "Atualizar modelo" : "Publicar modelo"}
+        </RoundedSlideButton>
       </div>
     </div>
   );
