@@ -32,7 +32,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
       {products.map((p, i) => {
         const price = effectivePrice(p.price, p.promoPrice);
         const hasPromo = p.promoPrice != null && Number(p.promoPrice) < Number(p.price);
@@ -50,7 +50,7 @@ export function ProductGrid({
             }}
           >
             <Link href={`/modelo/${p.slug}`} className="group block">
-              <div className="relative aspect-[3/4] overflow-hidden bg-[var(--sand)]">
+              <div className="relative aspect-[4/5] overflow-hidden bg-[var(--sand)]">
                 {img ? (
                   <Image
                     src={img}
@@ -66,7 +66,7 @@ export function ProductGrid({
                   </span>
                 )}
               </div>
-              <div className="mt-3 space-y-1">
+              <div className="mt-2 space-y-0.5">
                 {p.category && (
                   <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">
                     {p.category.name}

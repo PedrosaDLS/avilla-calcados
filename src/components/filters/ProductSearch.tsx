@@ -53,7 +53,7 @@ export function ProductSearch({ initialValue = "" }: { initialValue?: string }) 
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Pesquisar modelos..."
-        className="w-full rounded-full border border-[var(--line)] bg-[var(--bg-elevated)] py-3 pl-5 pr-12 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+        className="w-full rounded-full border border-[var(--line)] bg-[var(--bg-elevated)] py-4 pl-5 pr-12 text-base text-[var(--ink)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
       />
       <div className="absolute inset-y-0 right-3 flex items-center">
         {value ? (

@@ -56,9 +56,9 @@ export default async function ColecaoPage({ searchParams }: Props) {
   };
 
   return (
-    <section className="relative isolate w-full px-4 py-10 md:px-6 md:py-14">
+    <section className="relative isolate w-full px-4 py-6 md:px-6 md:py-8">
       <div className="relative z-10 mx-auto max-w-7xl">
-        <div className="mb-8">
+        <div className="mb-5">
           <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Catálogo</p>
           <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl md:text-5xl">
             Coleção
@@ -68,13 +68,13 @@ export default async function ColecaoPage({ searchParams }: Props) {
           </p>
         </div>
 
-        <div className="flex flex-col gap-8 md:flex-row md:items-start">
-          <div className="w-full md:sticky md:top-24 md:w-64 md:flex-none lg:w-72 xl:w-80">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start md:gap-5 lg:gap-6">
+          <div className="w-full md:sticky md:top-24 md:-ml-2 md:w-56 md:flex-none lg:-ml-3 lg:w-60 xl:w-64">
             <Suspense fallback={null}>
               <ProductFilters {...filterOptions} />
             </Suspense>
           </div>
-          <div className="min-w-0 flex-1 space-y-8">
+          <div className="min-w-0 flex-1 space-y-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-[var(--muted)] md:hidden">
                 {total} modelo{total === 1 ? "" : "s"}
