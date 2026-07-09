@@ -26,15 +26,14 @@ export type ProductFormState = {
   categoryId: string;
   colors: ColorEntry[];
   sizes: string[];
-  extraSizes: string;
   images: ImageEntry[];
 };
 
-export const STEPS = [
-  { id: 1, label: "Informações" },
-  { id: 2, label: "Cores e tamanhos" },
-  { id: 3, label: "Fotos" },
-  { id: 4, label: "Revisar" },
-] as const;
+export type FormTab = "form" | "review";
 
-export const DEFAULT_SIZES = ["33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44"];
+export const FORM_TABS: { id: FormTab; label: string }[] = [
+  { id: "form", label: "Cadastro" },
+  { id: "review", label: "Revisão" },
+];
+
+export const DEFAULT_SIZES = ["33", "34", "35", "36", "37", "38", "39"];

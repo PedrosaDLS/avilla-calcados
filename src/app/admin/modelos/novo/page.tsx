@@ -7,7 +7,7 @@ export default async function NovoModeloPage() {
     <div>
       <h2 className="text-xl font-medium">Novo modelo</h2>
       <p className="mt-2 mb-6 text-sm text-[var(--muted)]">
-        Siga as 4 etapas para cadastrar um modelo no catálogo.
+        Preencha o cadastro na página abaixo e revise antes de publicar.
       </p>
       <ProductForm categories={categories} />
     </div>

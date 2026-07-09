@@ -34,8 +34,7 @@ export function validateVariants(state: ProductFormState): StepErrors {
     errors.colors = "Todas as cores precisam de um nome.";
   }
 
-  const allSizes = getAllSizes(state);
-  if (!allSizes.length) {
+  if (!state.sizes.length) {
     errors.sizes = "Selecione pelo menos uma numeração.";
   }
 
@@ -55,14 +54,16 @@ export function validateImages(state: ProductFormState): StepErrors {
   return errors;
 }
 
+export function validateAll(state: ProductFormState): StepErrors {
+  return {
+    ...validateBasicInfo(state),
+    ...validateVariants(state),
+    ...validateImages(state),
+  };
+}
+
 export function getAllSizes(state: ProductFormState): string[] {
-  const extra = state.extraSizes
-    .split(/[,\s]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return Array.from(new Set([...state.sizes, ...extra])).sort(
-    (a, b) => Number(a) - Number(b)
-  );
+  return [...state.sizes].sort((a, b) => Number(a) - Number(b));
 }
 
 export function mapApiError(message: string): string {
@@ -72,5 +73,8 @@ export function mapApiError(message: string): string {
   }
   if (lower.includes("positive")) return "Preço deve ser maior que zero.";
   if (lower.includes("min")) return "Preencha todos os campos obrigatórios.";
+  if (lower.includes("unexpected end of json")) {
+    return "Falha no upload. Verifique o arquivo e tente novamente.";
+  }
   return message || "Erro ao salvar. Tente novamente.";
 }

@@ -114,21 +114,6 @@ export function VariantsStep({ state, errors, onChange }: Props) {
             })}
           </div>
         </Field>
-
-        <Field
-          id="product-extra-sizes"
-          label="Outros tamanhos"
-          optional
-          hint="Separe por vírgula, se precisar de numerações fora da grade."
-        >
-          <input
-            id="product-extra-sizes"
-            value={state.extraSizes}
-            onChange={(e) => onChange("extraSizes", e.target.value)}
-            className={inputClass}
-            placeholder="Ex.: 32, 45"
-          />
-        </Field>
       </div>
     </div>
   );

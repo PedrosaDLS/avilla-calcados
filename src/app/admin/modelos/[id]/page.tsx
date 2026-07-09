@@ -19,7 +19,7 @@ export default async function EditModeloPage({ params }: Props) {
     <div>
       <h2 className="text-xl font-medium">Editar modelo</h2>
       <p className="mt-2 mb-6 text-sm text-[var(--muted)]">
-        Atualize as informações em etapas e revise antes de salvar.
+        Atualize o cadastro na página abaixo e revise antes de salvar.
       </p>
       <ProductForm
         categories={categories}

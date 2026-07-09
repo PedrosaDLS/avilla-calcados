@@ -3,20 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
+import { parseApiResponse } from "./product-form/api";
 import { BasicInfoStep } from "./product-form/BasicInfoStep";
-import { FormStepper } from "./product-form/FormStepper";
+import { FormTabs } from "./product-form/FormTabs";
 import { ImagesStep } from "./product-form/ImagesStep";
 import { ReviewStep } from "./product-form/ReviewStep";
 import { SuccessScreen } from "./product-form/SuccessScreen";
-import type { Category, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
+import type { Category, FormTab, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
 import { DEFAULT_SIZES } from "./product-form/types";
 import { VariantsStep } from "./product-form/VariantsStep";
 import {
   getAllSizes,
   mapApiError,
-  validateBasicInfo,
-  validateImages,
-  validateVariants,
+  validateAll,
   type StepErrors,
 } from "./product-form/validation";
 
@@ -26,7 +25,6 @@ function buildInitialState(
 ): ProductFormState {
   const allSizes = initial?.sizes ?? [];
   const sizes = allSizes.filter((s) => DEFAULT_SIZES.includes(s));
-  const extraSizes = allSizes.filter((s) => !DEFAULT_SIZES.includes(s)).join(", ");
   const colors = initial?.colors?.length
     ? initial.colors
     : [{ name: "", hex: "#d4b5a0" }];
@@ -40,7 +38,6 @@ function buildInitialState(
     categoryId: initial?.categoryId ?? categories[0]?.id ?? "",
     colors,
     sizes,
-    extraSizes,
     images: initial?.images ?? [],
   };
 }
@@ -63,7 +60,7 @@ export function ProductForm({
     [categories, initial]
   );
   const [state, setState] = useState<ProductFormState>(() => baseline);
-  const [step, setStep] = useState(1);
+  const [tab, setTab] = useState<FormTab>("form");
   const [errors, setErrors] = useState<StepErrors>({});
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -82,23 +79,18 @@ export function ProductForm({
     []
   );
 
-  function validateStep(current: number): boolean {
-    let stepErrors: StepErrors = {};
-    if (current === 1) stepErrors = validateBasicInfo(state);
-    if (current === 2) stepErrors = validateVariants(state);
-    if (current === 3) stepErrors = validateImages(state);
-    setErrors(stepErrors);
-    return Object.keys(stepErrors).length === 0;
-  }
-
-  function goNext() {
-    if (!validateStep(step)) return;
-    setStep((s) => Math.min(4, s + 1));
-  }
-
-  function goBack() {
-    setErrors({});
-    setStep((s) => Math.max(1, s - 1));
+  function handleTabChange(next: FormTab) {
+    if (next === "review") {
+      const allErrors = validateAll(state);
+      setErrors(allErrors);
+      if (Object.keys(allErrors).length > 0) {
+        setSaveError("Corrija os campos destacados antes de revisar.");
+        setTab("form");
+        return;
+      }
+      setSaveError("");
+    }
+    setTab(next);
   }
 
   function handleCancel() {
@@ -118,8 +110,13 @@ export function ProductForm({
         const fd = new FormData();
         fd.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Falha no upload");
+        const data = await parseApiResponse(res);
+        if (!res.ok) {
+          throw new Error(String(data.error || "Falha no upload"));
+        }
+        if (typeof data.url !== "string") {
+          throw new Error("Resposta de upload inválida.");
+        }
         uploaded.push({ url: data.url, colorName: null });
       }
       setState((prev) => ({ ...prev, images: [...prev.images, ...uploaded] }));
@@ -131,8 +128,10 @@ export function ProductForm({
   }
 
   async function handleSubmit() {
-    if (!validateStep(3)) {
-      setStep(3);
+    const allErrors = validateAll(state);
+    setErrors(allErrors);
+    if (Object.keys(allErrors).length > 0) {
+      setTab("form");
       return;
     }
 
@@ -168,8 +167,11 @@ export function ProductForm({
           body: JSON.stringify(payload),
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao salvar");
+      const data = await parseApiResponse(res);
+      if (!res.ok) throw new Error(String(data.error || "Erro ao salvar"));
+      if (typeof data.slug !== "string") {
+        throw new Error("Resposta inválida ao salvar.");
+      }
       setSavedSlug(data.slug);
       router.refresh();
     } catch (err) {
@@ -181,7 +183,7 @@ export function ProductForm({
 
   function resetForAnother() {
     setState(buildInitialState(categories));
-    setStep(1);
+    setTab("form");
     setErrors({});
     setSaveError("");
     setSavedSlug(null);
@@ -199,29 +201,45 @@ export function ProductForm({
 
   return (
     <div className="pb-28 md:pb-8">
-      <FormStepper currentStep={step} />
+      <FormTabs activeTab={tab} onTabChange={handleTabChange} />
 
-      {step === 1 && (
-        <BasicInfoStep
-          state={state}
-          categories={categories}
-          errors={errors}
-          onChange={onChange}
-        />
+      {tab === "form" ? (
+        <div className="space-y-10">
+          <section>
+            <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+              Informações
+            </h3>
+            <BasicInfoStep
+              state={state}
+              categories={categories}
+              errors={errors}
+              onChange={onChange}
+            />
+          </section>
+
+          <section>
+            <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+              Cores e numerações
+            </h3>
+            <VariantsStep state={state} errors={errors} onChange={onChange} />
+          </section>
+
+          <section>
+            <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+              Fotos
+            </h3>
+            <ImagesStep
+              state={state}
+              errors={errors}
+              uploading={uploading}
+              onImagesChange={(images) => onChange("images", images)}
+              onUpload={uploadFiles}
+            />
+          </section>
+        </div>
+      ) : (
+        <ReviewStep state={state} categories={categories} />
       )}
-      {step === 2 && (
-        <VariantsStep state={state} errors={errors} onChange={onChange} />
-      )}
-      {step === 3 && (
-        <ImagesStep
-          state={state}
-          errors={errors}
-          uploading={uploading}
-          onImagesChange={(images) => onChange("images", images)}
-          onUpload={uploadFiles}
-        />
-      )}
-      {step === 4 && <ReviewStep state={state} categories={categories} />}
 
       {saveError && (
         <p className="mt-4 text-sm text-red-700" role="alert">
@@ -231,37 +249,40 @@ export function ProductForm({
 
       <div className="fixed inset-x-0 bottom-16 z-30 border-t border-[var(--line)] bg-[var(--bg)]/95 px-4 py-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0">
         <div className="mx-auto flex max-w-5xl flex-col gap-2 sm:flex-row sm:justify-between">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="flex-1 rounded-full border border-[var(--line)] px-4 py-2.5 text-sm sm:flex-none"
-            >
-              Cancelar
-            </button>
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={goBack}
-                className="flex-1 rounded-full border border-[var(--line)] px-4 py-2.5 text-sm sm:flex-none"
-              >
-                Voltar
-              </button>
-            )}
-          </div>
-          {step < 4 ? (
-            <RoundedSlideButton type="button" onClick={goNext} className="w-full sm:w-auto">
-              Continuar
-            </RoundedSlideButton>
-          ) : (
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="rounded-full border border-[var(--line)] px-4 py-2.5 text-sm"
+          >
+            Cancelar
+          </button>
+
+          {tab === "form" ? (
             <RoundedSlideButton
               type="button"
-              disabled={busy}
-              onClick={handleSubmit}
+              onClick={() => handleTabChange("review")}
               className="w-full sm:w-auto"
             >
-              {busy ? "Publicando..." : isEdit ? "Atualizar modelo" : "Publicar modelo"}
+              Ir para revisão
             </RoundedSlideButton>
+          ) : (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setTab("form")}
+                className="rounded-full border border-[var(--line)] px-4 py-2.5 text-sm"
+              >
+                Voltar ao cadastro
+              </button>
+              <RoundedSlideButton
+                type="button"
+                disabled={busy}
+                onClick={handleSubmit}
+                className="w-full sm:w-auto"
+              >
+                {busy ? "Publicando..." : isEdit ? "Atualizar modelo" : "Publicar modelo"}
+              </RoundedSlideButton>
+            </div>
           )}
         </div>
       </div>
