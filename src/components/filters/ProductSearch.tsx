@@ -42,7 +42,7 @@ export function ProductSearch({ initialValue = "" }: { initialValue?: string }) 
 
   return (
     <div
-      className={`relative ml-auto w-full max-w-sm ${pending ? "opacity-70" : ""}`}
+      className={`relative w-full ${pending ? "opacity-70" : ""}`}
     >
       <label htmlFor="catalog-search" className="sr-only">
         Pesquisar modelos

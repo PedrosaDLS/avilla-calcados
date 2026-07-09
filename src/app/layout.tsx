@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { FlyoutNavbar } from "@/components/header/FlyoutNavbar";
@@ -50,7 +51,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body
         className="min-h-full antialiased"
@@ -61,6 +61,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           } as React.CSSProperties
         }
       >
+        <Script id="avilla-theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
         <div className="app-shell">
           <Providers>
             <FlyoutNavbar />

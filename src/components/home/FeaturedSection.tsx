@@ -40,6 +40,7 @@ export function FeaturedSection({ products }: { products: ProductCardData[] }) {
           products={products}
           emptyMessage="Novos modelos em breve."
           staggerBase={0.12}
+          imageAspectClass="aspect-square"
         />
       </motion.div>
 

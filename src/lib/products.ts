@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
 
 export type ProductFilters = {
   minPrice?: number;
@@ -93,33 +92,3 @@ export const productCardInclude = {
   sizes: true,
   category: true,
 } satisfies Prisma.ProductInclude;
-
-export async function getFilterOptions() {
-  const [categories, colors, sizes, priceAgg] = await Promise.all([
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
-    prisma.productColor.findMany({
-      distinct: ["name"],
-      select: { name: true, hex: true },
-      orderBy: { name: "asc" },
-    }),
-    prisma.productSize.findMany({
-      distinct: ["size"],
-      select: { size: true },
-      orderBy: { size: "asc" },
-    }),
-    prisma.product.aggregate({
-      _min: { price: true },
-      _max: { price: true },
-    }),
-  ]);
-
-  return {
-    categories,
-    colors,
-    sizes: sizes.map((s) => s.size),
-    priceRange: {
-      min: Number(priceAgg._min.price ?? 0),
-      max: Number(priceAgg._max.price ?? 1000),
-    },
-  };
-}

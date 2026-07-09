@@ -20,10 +20,12 @@ export function ProductGrid({
   products,
   emptyMessage = "Nenhum modelo encontrado com esses filtros.",
   staggerBase = 0.05,
+  imageAspectClass = "aspect-[4/5]",
 }: {
   products: ProductCardData[];
   emptyMessage?: string;
   staggerBase?: number;
+  imageAspectClass?: string;
 }) {
   if (!products.length) {
     return (
@@ -50,7 +52,7 @@ export function ProductGrid({
             }}
           >
             <Link href={`/modelo/${p.slug}`} className="group block">
-              <div className="relative aspect-[4/5] overflow-hidden bg-[var(--sand)]">
+              <div className={`relative ${imageAspectClass} overflow-hidden bg-[var(--sand)]`}>
                 {img ? (
                   <Image
                     src={img}
