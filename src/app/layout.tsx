@@ -3,7 +3,6 @@ import Script from "next/script";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { FlyoutNavbar } from "@/components/header/FlyoutNavbar";
-import { PageAtmosphere } from "@/components/effects/PageAtmosphere";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -68,7 +67,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <Providers>
             <FlyoutNavbar />
             <main className="relative flex-1">
-              <PageAtmosphere />
               <div className="relative z-[1]">{children}</div>
             </main>
             <footer className="mt-20 border-t border-[var(--line)] py-10 text-center text-sm text-[var(--muted)]">
