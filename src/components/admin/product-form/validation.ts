@@ -41,9 +41,9 @@ export function validateImages(state: ProductFormState): StepErrors {
     errors.images = "Informe pelo menos uma foto.";
   }
   const hasColors = state.colors.some((c) => c.name.trim());
-  if (hasColors && state.images.some((img) => !img.colorName)) {
+  if (hasColors && state.images.some((img) => !img.colorNames.length)) {
     errors.images =
-      "Atribua uma cor a cada foto ou remova cores que não serão usadas.";
+      "Selecione ao menos uma cor por foto ou remova cores que não serão usadas.";
   }
   return errors;
 }

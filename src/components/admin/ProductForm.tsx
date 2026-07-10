@@ -97,7 +97,7 @@ export function ProductForm({
         if (typeof data.url !== "string") {
           throw new Error("Resposta de upload inválida.");
         }
-        uploaded.push({ url: data.url, colorName: null });
+        uploaded.push({ url: data.url, colorNames: [] });
       }
       setState((prev) => ({ ...prev, images: [...prev.images, ...uploaded] }));
     } catch (e) {
@@ -137,7 +137,7 @@ export function ProductForm({
       images: state.images.map((img, i) => ({
         url: img.url,
         sortOrder: i,
-        colorName: img.colorName ?? null,
+        colorNames: [...new Set(img.colorNames)],
       })),
     };
 

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { groupImagesForForm } from "@/lib/product-images";
 import { ProductForm } from "@/components/admin/ProductForm";
 
 type Props = { params: Promise<{ id: string }> };
@@ -39,12 +40,7 @@ export default async function EditModeloPage({ params }: Props) {
               .map((s) => s.size)
               .sort((a, b) => Number(a) - Number(b)),
           })),
-          images: product.images.map((i) => ({
-            url: i.url,
-            colorName: i.colorId
-              ? product.colors.find((c) => c.id === i.colorId)?.name ?? null
-              : null,
-          })),
+          images: groupImagesForForm(product.images, product.colors),
         }}
       />
     </div>

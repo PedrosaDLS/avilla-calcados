@@ -7,12 +7,11 @@ const bodySchema = z.object({
   imageUrl: z.string().min(1),
 });
 
-const PROMPT = `Você descreve calçados femininos para um catálogo de luxo brasileiro (Àvilla).
-Analise a imagem e escreva uma descrição curta em português do Brasil usando Markdown.
-Use parágrafos, **negrito** para destaques e listas com "-" quando fizer sentido.
-Mencione detalhes visíveis do modelo (tipo de salto, material aparente, fechos, acabamento, estilo e ocasião de uso).
-Tom elegante e natural. Sem emojis, sem preço, sem inventar o que não aparece na foto.
-Responda apenas com o Markdown puro, sem blocos de código (\`\`\`) e sem explicações extras.`;
+const PROMPT = `Descreva este calçado feminino para catálogo Àvilla em português do Brasil.
+Responda com UM único parágrafo curto (máximo 2 frases, até 35 palavras).
+Mencione só o que aparece na foto: tipo, salto, material e estilo.
+Tom elegante. Sem emojis, sem preço, sem listas, sem negrito, sem inventar detalhes.
+Apenas o texto final, sem blocos de código.`;
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -44,7 +43,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: "pixtral-12b-2409",
         messages: [{ role: "user", content }],
-        max_tokens: 400,
+        max_tokens: 120,
         temperature: 0.4,
       }),
     });

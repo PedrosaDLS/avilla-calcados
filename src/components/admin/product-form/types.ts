@@ -2,7 +2,7 @@ export type Category = { id: string; name: string };
 
 export type ColorEntry = { name: string; hex: string | null; sizes: string[] };
 
-export type ImageEntry = { url: string; colorName?: string | null };
+export type ImageEntry = { url: string; colorNames: string[] };
 
 export type ProductFormInitial = {
   id?: string;

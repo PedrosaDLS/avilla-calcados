@@ -30,11 +30,15 @@ export function ImagesStep({ state, errors, uploading, onImagesChange, onUpload 
     onImagesChange(state.images.filter((_, i) => i !== index));
   }
 
-  function setImageColor(index: number, colorName: string | null) {
+  function toggleImageColor(index: number, colorName: string) {
     onImagesChange(
-      state.images.map((img, i) =>
-        i === index ? { ...img, colorName: colorName || null } : img
-      )
+      state.images.map((img, i) => {
+        if (i !== index) return img;
+        const selected = img.colorNames.includes(colorName)
+          ? img.colorNames.filter((name) => name !== colorName)
+          : [...img.colorNames, colorName];
+        return { ...img, colorNames: selected };
+      })
     );
   }
 
@@ -89,9 +93,9 @@ export function ImagesStep({ state, errors, uploading, onImagesChange, onUpload 
         </div>
       </Field>
 
-      {colorOptions.length > 0 && state.images.some((img) => !img.colorName) && (
+      {colorOptions.length > 0 && state.images.some((img) => !img.colorNames.length) && (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-          Atribua uma cor a cada foto para que a vitrine mostre as imagens corretas.
+          Selecione ao menos uma cor por foto para a vitrine exibir as imagens corretas.
         </p>
       )}
 
@@ -112,21 +116,34 @@ export function ImagesStep({ state, errors, uploading, onImagesChange, onUpload 
 
             <div className="min-w-0 flex-1 space-y-2">
               {colorOptions.length > 0 && (
-                <label className="block text-xs text-[var(--muted)]">
-                  Cor desta foto
-                  <select
-                    value={img.colorName ?? ""}
-                    onChange={(e) => setImageColor(index, e.target.value || null)}
-                    className="mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-sm"
-                  >
-                    <option value="">Selecione...</option>
-                    {colorOptions.map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <fieldset className="block">
+                  <legend className="text-xs text-[var(--muted)]">
+                    Cores desta foto (pode selecionar mais de uma)
+                  </legend>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {colorOptions.map((c) => {
+                      const active = img.colorNames.includes(c.name);
+                      return (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => toggleImageColor(index, c.name)}
+                          className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
+                            active
+                              ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--bg)]"
+                              : "border-[var(--line)] hover:border-[var(--accent)]"
+                          }`}
+                        >
+                          <span
+                            className="h-3 w-3 rounded-full border border-black/10"
+                            style={{ background: c.hex || "#ccc" }}
+                          />
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
               )}
               <div className="flex flex-wrap gap-2">
                 <button

@@ -41,11 +41,13 @@ export function buildPreviewProduct(
       }));
     });
 
-  const images = state.images.map((img, i) => ({
-    id: `preview-img-${i}`,
-    url: img.url,
-    colorId: img.colorName ? colorNameToId[img.colorName] ?? null : null,
-  }));
+  const images = state.images.flatMap((img, i) =>
+    (img.colorNames.length ? img.colorNames : [null]).map((colorName, j) => ({
+      id: `preview-img-${i}-${j}`,
+      url: img.url,
+      colorId: colorName ? colorNameToId[colorName] ?? null : null,
+    }))
+  );
 
   return {
     id: "preview",

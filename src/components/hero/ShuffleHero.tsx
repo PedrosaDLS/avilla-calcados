@@ -187,8 +187,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
               Elegância que caminha com você
             </h1>
             <p className="mt-5 max-w-md text-base leading-relaxed text-[var(--muted)]">
-              Peças selecionadas para o cotidiano sofisticado. Descubra a coleção Àvilla — forma,
-              conforto e presença em cada passo.
+              Elegância e conforto para cada passo.
             </p>
           </div>
           <div className="hidden md:block">
@@ -200,16 +199,11 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
               as="p"
               className="mb-4 text-xs uppercase tracking-[0.35em] text-[var(--muted)]"
             />
+            <h1 className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)] md:text-6xl">
+              Elegância que caminha com você
+            </h1>
             <BlurText
-              text="Elegância que caminha com você"
-              delay={120}
-              animateBy="words"
-              direction="top"
-              as="h1"
-              className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)] md:text-6xl"
-            />
-            <BlurText
-              text="Peças selecionadas para o cotidiano sofisticado. Descubra os calçados àvilla que fornecem conforto e presença em cada passo."
+              text="Elegância e conforto para cada passo."
               delay={40}
               animateBy="words"
               direction="top"

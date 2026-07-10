@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { expandImagesForDb } from "@/lib/product-images";
 import { slugify } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
@@ -26,6 +27,7 @@ const updateSchema = z.object({
         url: z.string().min(1),
         sortOrder: z.number().int().default(0),
         colorName: z.string().nullable().optional(),
+        colorNames: z.array(z.string().min(1)).optional(),
       })
     )
     .optional(),
@@ -99,17 +101,18 @@ export async function PUT(req: Request, { params }: Params) {
     const colors = await prisma.productColor.findMany({ where: { productId: id } });
     await prisma.productImage.deleteMany({ where: { productId: id } });
     await prisma.productImage.createMany({
-      data: body.images.map((img, i) => {
-        const color = img.colorName
-          ? colors.find((c) => c.name.toLowerCase() === img.colorName!.toLowerCase())
-          : null;
-        return {
-          productId: id,
+      data: expandImagesForDb(
+        body.images.map((img, i) => ({
           url: img.url,
           sortOrder: img.sortOrder ?? i,
-          colorId: color?.id ?? null,
-        };
-      }),
+          colorName: img.colorName ?? null,
+          colorNames: img.colorNames,
+        })),
+        colors
+      ).map((row) => ({
+        productId: id,
+        ...row,
+      })),
     });
   }
 

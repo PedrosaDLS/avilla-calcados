@@ -57,10 +57,12 @@ export default function BlurText({
     },
   };
 
+  const isBlockTag = Tag !== "span";
+
   return (
     <Tag className={className} style={style}>
       <motion.span
-        className="inline"
+        className={isBlockTag ? "block w-full text-left" : "inline"}
         initial="hidden"
         animate={controls}
         variants={container}
@@ -69,7 +71,7 @@ export default function BlurText({
         {units.map((unit, i) => (
           <motion.span
             key={`${unit}-${i}`}
-            className="inline-block whitespace-pre"
+            className={animateBy === "letters" ? "inline-block whitespace-pre" : "inline whitespace-pre"}
             variants={child}
           >
             {unit === " " ? "\u00A0" : unit}
