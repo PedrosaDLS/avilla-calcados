@@ -143,10 +143,10 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:grid-cols-2 md:px-6 md:py-14">
-      <div>
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-2 md:gap-10 md:px-6 md:py-14">
+      <div className="min-w-0">
         <div className="product-card-frame relative border border-[var(--line)] bg-[var(--bg-elevated)] p-2 md:p-3">
-          <div className="relative aspect-[3/4] overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]/60">
+          <div className="product-detail-gallery relative aspect-[4/5] w-full overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]/60 md:aspect-[3/4]">
             {activeImg ? (
               <Image
                 key={activeImg}
@@ -154,7 +154,7 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
                 alt={product.name}
                 fill
                 className="object-cover"
-                sizes="50vw"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 priority
               />
             ) : null}
@@ -191,26 +191,26 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
         )}
       </div>
 
-      <div>
+      <div className="min-w-0">
         <p className="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">
           {product.category.name}
           {product.isLaunch ? " · Lançamento" : ""}
         </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl md:text-5xl">
+        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-tight md:text-5xl">
           {product.name}
         </h1>
-        <div className="mt-4 flex items-baseline gap-3">
-          <span className={`text-2xl ${hasPromo ? "text-[var(--accent)]" : ""}`}>
+        <div className="mt-4 flex flex-wrap items-baseline gap-3">
+          <span className={`text-xl md:text-2xl ${hasPromo ? "text-[var(--accent)]" : ""}`}>
             {formatBRL(price)}
           </span>
           {hasPromo && (
-            <span className="text-[var(--muted)] line-through">
+            <span className="text-sm text-[var(--muted)] line-through md:text-base">
               {formatBRL(Number(product.price))}
             </span>
           )}
         </div>
         {product.description && (
-          <MarkdownContent content={product.description} className="mt-6" />
+          <MarkdownContent content={product.description} className="mt-5 md:mt-6" />
         )}
 
         {product.colors.length > 0 && (

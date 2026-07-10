@@ -97,9 +97,9 @@ export function DescriptionStep({ state, onChange }: Props) {
       />
 
       {state.description.trim() && (
-        <div className="rounded-xl border border-[var(--line)] bg-[var(--bg-elevated)] p-4">
-          <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Prévia</p>
-          <MarkdownContent content={state.description} className="text-sm" />
+        <div className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--bg-elevated)] p-4 md:p-5">
+          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Prévia</p>
+          <MarkdownContent content={state.description} />
         </div>
       )}
 

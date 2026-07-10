@@ -209,7 +209,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
               className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)] md:text-6xl"
             />
             <BlurText
-              text="Peças selecionadas para o cotidiano sofisticado. Descubra a coleção Àvilla — forma, conforto e presença em cada passo."
+              text="Peças selecionadas para o cotidiano sofisticado. Descubra os calçados àvilla que fornecem conforto e presença em cada passo."
               delay={40}
               animateBy="words"
               direction="top"

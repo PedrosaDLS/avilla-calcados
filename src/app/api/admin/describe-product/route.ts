@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { normalizeMarkdown } from "@/lib/markdown";
 
 const bodySchema = z.object({
   imageUrl: z.string().min(1),
@@ -11,7 +12,7 @@ Analise a imagem e escreva uma descrição curta em português do Brasil usando 
 Use parágrafos, **negrito** para destaques e listas com "-" quando fizer sentido.
 Mencione detalhes visíveis do modelo (tipo de salto, material aparente, fechos, acabamento, estilo e ocasião de uso).
 Tom elegante e natural. Sem emojis, sem preço, sem inventar o que não aparece na foto.
-Responda apenas com o Markdown, sem explicações extras.`;
+Responda apenas com o Markdown puro, sem blocos de código (\`\`\`) e sem explicações extras.`;
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "A IA não retornou descrição." }, { status: 502 });
     }
 
-    return NextResponse.json({ description });
+    return NextResponse.json({ description: normalizeMarkdown(description) });
   } catch {
     return NextResponse.json({ error: "Erro ao gerar descrição." }, { status: 502 });
   }

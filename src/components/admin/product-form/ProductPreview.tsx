@@ -85,11 +85,17 @@ export function ProductPreview({
       <p className="border-b border-[var(--line)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
         Pré-visualização na loja
       </p>
-      <div className="grid gap-6 p-4 md:grid-cols-2">
-        <div>
-          <div className="relative aspect-[3/4] overflow-hidden bg-[var(--sand)]">
+      <div className="grid grid-cols-1 gap-5 p-4 md:grid-cols-2 md:gap-6">
+        <div className="min-w-0">
+          <div className="product-detail-gallery relative aspect-[4/5] w-full overflow-hidden bg-[var(--sand)] md:aspect-[3/4]">
             {activeImg ? (
-              <Image src={activeImg} alt={product.name} fill className="object-cover" sizes="300px" />
+              <Image
+                src={activeImg}
+                alt={product.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 300px"
+              />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">
                 Sem foto
@@ -97,14 +103,16 @@ export function ProductPreview({
             )}
           </div>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
             {product.category.name}
             {product.isLaunch ? " · Lançamento" : ""}
           </p>
-          <h3 className="mt-2 font-[family-name:var(--font-display)] text-2xl">{product.name}</h3>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className={`text-xl ${hasPromo ? "text-[var(--accent)]" : ""}`}>
+          <h3 className="mt-2 font-[family-name:var(--font-display)] text-2xl leading-tight md:text-3xl">
+            {product.name}
+          </h3>
+          <div className="mt-3 flex flex-wrap items-baseline gap-2">
+            <span className={`text-lg md:text-xl ${hasPromo ? "text-[var(--accent)]" : ""}`}>
               {formatBRL(price)}
             </span>
             {hasPromo && (
@@ -114,7 +122,7 @@ export function ProductPreview({
             )}
           </div>
           {product.description && (
-            <MarkdownContent content={product.description} className="mt-4 text-sm" />
+            <MarkdownContent content={product.description} className="mt-4 md:mt-5" />
           )}
           {product.colors.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">

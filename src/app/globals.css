@@ -108,6 +108,27 @@ button {
   display: flex;
   min-height: 100%;
   flex-direction: column;
+  overflow-x: clip;
+}
+
+.markdown-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.markdown-content :where(p, li, h3) {
+  max-width: 65ch;
+}
+
+.product-detail-gallery {
+  max-height: min(62vh, 34rem);
+}
+
+@media (min-width: 768px) {
+  .product-detail-gallery {
+    max-height: none;
+  }
 }
 
 .product-card-frame {
