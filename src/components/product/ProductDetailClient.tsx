@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
+import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 
 type ProductDetail = {
@@ -209,7 +210,7 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
           )}
         </div>
         {product.description && (
-          <p className="mt-6 leading-relaxed text-[var(--muted)]">{product.description}</p>
+          <MarkdownContent content={product.description} className="mt-6" />
         )}
 
         {product.colors.length > 0 && (

@@ -198,6 +198,13 @@ export function ProductForm({
 
         <section>
           <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            Cores e numerações
+          </h3>
+          <VariantsStep state={state} errors={errors} onChange={onChange} />
+        </section>
+
+        <section>
+          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
             Fotos
           </h3>
           <ImagesStep
@@ -214,13 +221,6 @@ export function ProductForm({
             Descrição
           </h3>
           <DescriptionStep state={state} onChange={onChange} />
-        </section>
-
-        <section>
-          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-            Cores e numerações
-          </h3>
-          <VariantsStep state={state} errors={errors} onChange={onChange} />
         </section>
 
         <section id="revisao" className="scroll-mt-6 border-t border-[var(--line)] pt-10">

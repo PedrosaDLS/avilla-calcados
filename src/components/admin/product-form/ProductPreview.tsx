@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import type { Category, ProductFormState } from "./types";
 
@@ -113,7 +114,7 @@ export function ProductPreview({
             )}
           </div>
           {product.description && (
-            <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">{product.description}</p>
+            <MarkdownContent content={product.description} className="mt-4 text-sm" />
           )}
           {product.colors.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">

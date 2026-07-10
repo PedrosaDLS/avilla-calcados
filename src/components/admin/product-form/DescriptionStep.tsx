@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { inputClass } from "./Field";
 import { parseApiResponse } from "./api";
 import type { ProductFormState } from "./types";
@@ -23,7 +24,7 @@ export function DescriptionStep({ state, onChange }: Props) {
       const res = await fetch("/api/admin/describe-product", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrls: state.images.map((img) => img.url) }),
+        body: JSON.stringify({ imageUrl: state.images[0]!.url }),
       });
       const data = await parseApiResponse(res);
       if (!res.ok) {
@@ -49,7 +50,7 @@ export function DescriptionStep({ state, onChange }: Props) {
             <span className="ml-1 font-normal text-[var(--muted)]">(opcional)</span>
           </label>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Detalhes sobre o modelo, material ou ocasião de uso.
+            Suporta Markdown. Detalhes sobre o modelo, material ou ocasião de uso.
           </p>
         </div>
         <button
@@ -59,7 +60,7 @@ export function DescriptionStep({ state, onChange }: Props) {
           title={
             state.images.length === 0
               ? "Adicione fotos antes de gerar"
-              : "Gerar descrição com IA a partir das fotos"
+              : "Gerar descrição com IA a partir da primeira foto"
           }
           className="flex shrink-0 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--bg-elevated)] px-4 py-2.5 text-sm transition hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-45"
         >
@@ -82,7 +83,7 @@ export function DescriptionStep({ state, onChange }: Props) {
               strokeLinejoin="round"
             />
           </svg>
-          {generating ? "Analisando fotos..." : "Gerar com IA"}
+          {generating ? "Analisando foto..." : "Gerar com IA"}
         </button>
       </div>
 
@@ -92,8 +93,15 @@ export function DescriptionStep({ state, onChange }: Props) {
         onChange={(e) => onChange("description", e.target.value)}
         rows={4}
         className={inputClass}
-        placeholder="Descreva o modelo..."
+        placeholder="Descreva o modelo... (Markdown: **negrito**, - listas)"
       />
+
+      {state.description.trim() && (
+        <div className="rounded-xl border border-[var(--line)] bg-[var(--bg-elevated)] p-4">
+          <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Prévia</p>
+          <MarkdownContent content={state.description} className="text-sm" />
+        </div>
+      )}
 
       {state.images.length === 0 && (
         <p className="text-xs text-[var(--muted)]">Adicione fotos antes de usar a IA.</p>
