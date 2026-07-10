@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import BlurText from "@/components/effects/BlurText";
 import LiquidEther from "@/components/effects/LiquidEther";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
+import { pickRandomExcluding, pickRandomUnique } from "@/lib/shuffle";
 
 export type HeroProduct = {
   id: string;
@@ -14,6 +15,9 @@ export type HeroProduct = {
   slug: string;
   imageUrl: string | null;
 };
+
+const SLOT_COUNT = 4;
+const INTERVALS = [2800, 3400, 3100, 3900];
 
 /* Light: very soft cream ink. Dark: muted amber ink. */
 const LIGHT_ETHER = ["#fffefb", "#faf7f3", "#f3ede6"];
@@ -32,51 +36,41 @@ function useIsDark() {
   return dark;
 }
 
-function StaticSquare({ product }: { product: HeroProduct | undefined }) {
-  if (!product) {
-    return <div className="bg-[var(--sand)]" />;
+function buildInitialSlots(pool: HeroProduct[]): (HeroProduct | null)[] {
+  if (!pool.length) {
+    return Array.from({ length: SLOT_COUNT }, () => null);
   }
 
-  return (
-    <Link
-      href={`/modelo/${product.slug}`}
-      className="relative block h-full overflow-hidden bg-[var(--bg-elevated)]"
-    >
-      {product.imageUrl ? (
-        <Image
-          src={product.imageUrl}
-          alt={product.name}
-          fill
-          className="object-cover"
-          sizes="(max-width:768px) 45vw, 240px"
-        />
-      ) : (
-        <div className="flex h-full min-h-[120px] items-center justify-center bg-[var(--sand)] text-sm text-[var(--muted)]">
-          {product.name}
-        </div>
-      )}
-    </Link>
-  );
+  const unique = pickRandomUnique(pool, SLOT_COUNT, (p) => p.id);
+  const slots: (HeroProduct | null)[] = [...unique];
+
+  while (slots.length < SLOT_COUNT) {
+    slots.push(pool[slots.length % pool.length] ?? null);
+  }
+
+  return slots.slice(0, SLOT_COUNT);
 }
 
 function ShuffleSquare({
-  products,
+  product,
   intervalMs,
+  onTick,
+  className = "",
 }: {
-  products: HeroProduct[];
+  product: HeroProduct | null;
   intervalMs: number;
+  onTick: () => void;
+  className?: string;
 }) {
-  const [index, setIndex] = useState(0);
+  const onTickRef = useRef(onTick);
+  onTickRef.current = onTick;
 
   useEffect(() => {
-    if (products.length < 2) return;
-    const id = setInterval(() => {
-      setIndex((i) => (i + 1) % products.length);
-    }, intervalMs);
+    if (!product) return;
+    const id = setInterval(() => onTickRef.current(), intervalMs);
     return () => clearInterval(id);
-  }, [products.length, intervalMs]);
+  }, [product, intervalMs]);
 
-  const product = products[index % products.length];
   if (!product) {
     return <div className="bg-[var(--sand)]" />;
   }
@@ -84,11 +78,11 @@ function ShuffleSquare({
   return (
     <Link
       href={`/modelo/${product.slug}`}
-      className="relative overflow-hidden bg-[var(--bg-elevated)]"
+      className={`relative block h-full overflow-hidden bg-[var(--bg-elevated)] ${className}`}
     >
       <AnimatePresence mode="popLayout">
         <motion.div
-          key={product.id + String(index)}
+          key={product.id}
           initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
@@ -118,22 +112,38 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
   const heroRef = useRef<HTMLElement>(null);
   const dark = useIsDark();
   const etherColors = dark ? DARK_ETHER : LIGHT_ETHER;
+  const poolRef = useRef(products);
+  poolRef.current = products;
 
-  const pool = useMemo(() => {
-    const list = products.length ? [...products] : [];
-    while (list.length > 0 && list.length < 4) list.push(...products);
-    return list;
-  }, [products]);
+  const [visibleBySlot, setVisibleBySlot] = useState<(HeroProduct | null)[]>(() =>
+    buildInitialSlots(products)
+  );
 
-  const squares = useMemo(() => {
-    if (!pool.length) return [[], [], [], []] as HeroProduct[][];
-    return [0, 1, 2, 3].map((slot) => {
-      const rotated = [...pool.slice(slot), ...pool.slice(0, slot)];
-      return rotated;
+  const rotateSlot = useCallback((slotIndex: number) => {
+    const pool = poolRef.current;
+    if (pool.length < 2) return;
+
+    setVisibleBySlot((current) => {
+      const exclude = new Set(
+        current
+          .map((item, i) => (i === slotIndex ? null : item?.id))
+          .filter((id): id is string => id != null)
+      );
+      const next = pickRandomExcluding(pool, exclude, (p) => p.id);
+      if (!next) return current;
+
+      const updated = [...current];
+      updated[slotIndex] = next;
+      return updated;
     });
-  }, [pool]);
+  }, []);
 
-  const intervals = [2800, 3400, 3100, 3900];
+  const slotTickHandlers = useRef([
+    () => rotateSlot(0),
+    () => rotateSlot(1),
+    () => rotateSlot(2),
+    () => rotateSlot(3),
+  ]);
 
   return (
     <section
@@ -171,7 +181,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
         <div className="relative text-[var(--ink)]">
           <div className="md:hidden">
             <p className="mb-4 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">
-              Calçados femininos
+              Avilla Calçados
             </p>
             <h1 className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)]">
               Elegância que caminha com você
@@ -183,7 +193,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
           </div>
           <div className="hidden md:block">
             <BlurText
-              text="Calçados femininos"
+              text="Avilla Calçados"
               delay={80}
               animateBy="words"
               direction="top"
@@ -214,20 +224,19 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
           </div>
         </div>
 
-        <div className="grid aspect-square max-h-[520px] grid-cols-2 grid-rows-2 gap-3 md:hidden">
-          {squares.map((list, i) => (
-            <StaticSquare key={i} product={list[0] ?? pool[0]} />
+        <div className="grid aspect-square max-h-[520px] grid-cols-2 grid-rows-2 gap-3 md:gap-4">
+          {visibleBySlot.map((product, i) => (
+            <ShuffleSquare
+              key={i}
+              product={product}
+              intervalMs={INTERVALS[i]}
+              onTick={slotTickHandlers.current[i]}
+            />
           ))}
-          {!pool.length &&
-            [0, 1, 2, 3].map((i) => <div key={i} className="bg-[var(--sand)]" />)}
-        </div>
-
-        <div className="hidden aspect-square max-h-[520px] grid-cols-2 grid-rows-2 gap-4 md:grid">
-          {squares.map((list, i) => (
-            <ShuffleSquare key={i} products={list.length ? list : pool} intervalMs={intervals[i]} />
-          ))}
-          {!pool.length &&
-            [0, 1, 2, 3].map((i) => <div key={i} className="bg-[var(--sand)]" />)}
+          {!products.length &&
+            Array.from({ length: SLOT_COUNT }, (_, i) => (
+              <div key={i} className="bg-[var(--sand)]" />
+            ))}
         </div>
       </div>
     </section>

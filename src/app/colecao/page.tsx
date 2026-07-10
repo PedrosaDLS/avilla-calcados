@@ -44,7 +44,7 @@ export default async function ColecaoPage({ searchParams }: Props) {
 
   return (
     <section className="relative isolate w-full px-3 py-5 md:px-4 md:py-6 lg:px-5">
-      <div className="relative z-10 mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-4 flex flex-col gap-4 md:mb-3 md:flex-row md:items-end md:justify-between md:gap-6">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Catálogo</p>

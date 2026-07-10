@@ -31,8 +31,14 @@ export default async function EditModeloPage({ params }: Props) {
           promoPrice: product.promoPrice != null ? Number(product.promoPrice) : null,
           isLaunch: product.isLaunch,
           categoryId: product.categoryId,
-          colors: product.colors.map((c) => ({ name: c.name, hex: c.hex })),
-          sizes: product.sizes.map((s) => s.size),
+          colors: product.colors.map((c) => ({
+            name: c.name,
+            hex: c.hex,
+            sizes: product.sizes
+              .filter((s) => s.colorId === c.id)
+              .map((s) => s.size)
+              .sort((a, b) => Number(a) - Number(b)),
+          })),
           images: product.images.map((i) => ({
             url: i.url,
             colorName: i.colorId

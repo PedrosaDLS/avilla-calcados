@@ -53,18 +53,21 @@ model ProductColor {
   product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
   name      String
   hex       String?
+  sizes     ProductSize[]
   images    ProductImage[]
   cartItems CartItem[]
 }
 
 model ProductSize {
-  id        String     @id @default(cuid())
+  id        String       @id @default(cuid())
   productId String
-  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  colorId   String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color     ProductColor @relation(fields: [colorId], references: [id], onDelete: Cascade)
   size      String
   cartItems CartItem[]
 
-  @@unique([productId, size])
+  @@unique([colorId, size])
 }
 
 model ProductImage {

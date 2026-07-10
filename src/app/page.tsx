@@ -17,9 +17,7 @@ export default async function HomePage() {
     <>
       <ShuffleHero products={hero} />
       <section className="relative isolate w-full px-4 py-14 md:px-6">
-        <div className="relative z-10">
-          <FeaturedSection products={cards} />
-        </div>
+        <FeaturedSection products={cards} />
       </section>
     </>
   );

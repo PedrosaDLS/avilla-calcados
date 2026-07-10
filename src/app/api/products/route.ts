@@ -4,6 +4,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 
+const colorSchema = z.object({
+  name: z.string().min(1),
+  hex: z.string().nullable().optional(),
+  sizes: z.array(z.string().min(1)).default([]),
+});
+
 const productSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional().default(""),
@@ -11,10 +17,7 @@ const productSchema = z.object({
   promoPrice: z.number().positive().nullable().optional(),
   isLaunch: z.boolean().optional().default(false),
   categoryId: z.string().min(1),
-  colors: z
-    .array(z.object({ name: z.string().min(1), hex: z.string().nullable().optional() }))
-    .default([]),
-  sizes: z.array(z.string().min(1)).default([]),
+  colors: z.array(colorSchema).default([]),
   images: z
     .array(
       z.object({
@@ -25,6 +28,25 @@ const productSchema = z.object({
     )
     .default([]),
 });
+
+async function createSizesForColors(
+  productId: string,
+  colors: { id: string; name: string }[],
+  colorPayload: z.infer<typeof colorSchema>[]
+) {
+  const rows: { productId: string; colorId: string; size: string }[] = [];
+  for (const color of colors) {
+    const payload = colorPayload.find(
+      (c) => c.name.toLowerCase() === color.name.toLowerCase()
+    );
+    for (const size of payload?.sizes ?? []) {
+      rows.push({ productId, colorId: color.id, size });
+    }
+  }
+  if (rows.length) {
+    await prisma.productSize.createMany({ data: rows });
+  }
+}
 
 export async function GET() {
   const products = await prisma.product.findMany({
@@ -62,12 +84,11 @@ export async function POST(req: Request) {
       colors: {
         create: body.colors.map((c) => ({ name: c.name, hex: c.hex ?? null })),
       },
-      sizes: {
-        create: body.sizes.map((size) => ({ size })),
-      },
     },
     include: { colors: true },
   });
+
+  await createSizesForColors(product.id, product.colors, body.colors);
 
   if (body.images.length) {
     await prisma.productImage.createMany({

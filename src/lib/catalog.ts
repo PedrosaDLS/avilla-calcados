@@ -22,7 +22,10 @@ export async function getHomePageData() {
 
   const [heroProducts, highlights] = await Promise.all([
     prisma.product.findMany({
-      where: { OR: [{ isLaunch: true }, { viewCount: { gt: 0 } }] },
+      where: {
+        images: { some: {} },
+        OR: [{ isLaunch: true }, { viewCount: { gt: 0 } }],
+      },
       include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
       orderBy: [{ isLaunch: "desc" }, { viewCount: "desc" }],
       take: HERO_LIMIT,

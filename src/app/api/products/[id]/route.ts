@@ -6,6 +6,12 @@ import { slugify } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
 
+const colorSchema = z.object({
+  name: z.string().min(1),
+  hex: z.string().nullable().optional(),
+  sizes: z.array(z.string().min(1)).default([]),
+});
+
 const updateSchema = z.object({
   name: z.string().min(2).optional(),
   description: z.string().optional(),
@@ -13,10 +19,7 @@ const updateSchema = z.object({
   promoPrice: z.number().positive().nullable().optional(),
   isLaunch: z.boolean().optional(),
   categoryId: z.string().optional(),
-  colors: z
-    .array(z.object({ name: z.string().min(1), hex: z.string().nullable().optional() }))
-    .optional(),
-  sizes: z.array(z.string().min(1)).optional(),
+  colors: z.array(colorSchema).optional(),
   images: z
     .array(
       z.object({
@@ -27,6 +30,25 @@ const updateSchema = z.object({
     )
     .optional(),
 });
+
+async function createSizesForColors(
+  productId: string,
+  colors: { id: string; name: string }[],
+  colorPayload: z.infer<typeof colorSchema>[]
+) {
+  const rows: { productId: string; colorId: string; size: string }[] = [];
+  for (const color of colors) {
+    const payload = colorPayload.find(
+      (c) => c.name.toLowerCase() === color.name.toLowerCase()
+    );
+    for (const size of payload?.sizes ?? []) {
+      rows.push({ productId, colorId: color.id, size });
+    }
+  }
+  if (rows.length) {
+    await prisma.productSize.createMany({ data: rows });
+  }
+}
 
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;
@@ -60,6 +82,7 @@ export async function PUT(req: Request, { params }: Params) {
   await prisma.product.update({ where: { id }, data });
 
   if (body.colors) {
+    await prisma.productSize.deleteMany({ where: { productId: id } });
     await prisma.productColor.deleteMany({ where: { productId: id } });
     await prisma.productColor.createMany({
       data: body.colors.map((c) => ({
@@ -68,13 +91,8 @@ export async function PUT(req: Request, { params }: Params) {
         hex: c.hex ?? null,
       })),
     });
-  }
-
-  if (body.sizes) {
-    await prisma.productSize.deleteMany({ where: { productId: id } });
-    await prisma.productSize.createMany({
-      data: body.sizes.map((size) => ({ productId: id, size })),
-    });
+    const colors = await prisma.productColor.findMany({ where: { productId: id } });
+    await createSizesForColors(id, colors, body.colors);
   }
 
   if (body.images) {

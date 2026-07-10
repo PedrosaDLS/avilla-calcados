@@ -33,9 +33,6 @@
   --font-brand: "Bauhaus Std", sans-serif;
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-body: "DM Sans", system-ui, sans-serif;
-  --light-a: rgba(140, 90, 70, 0.18);
-  --light-b: rgba(212, 181, 160, 0.22);
-  --light-c: rgba(255, 255, 255, 0.35);
 }
 
 html.dark {
@@ -47,9 +44,6 @@ html.dark {
   --accent: #c4896f;
   --sand: #2a241f;
   --sand-hover: #352e28;
-  --light-a: rgba(196, 137, 111, 0.16);
-  --light-b: rgba(255, 220, 180, 0.1);
-  --light-c: rgba(255, 255, 255, 0.06);
 }
 
 @theme inline {
@@ -108,92 +102,35 @@ button {
   }
 }
 
-/* Slow drifting ambient lights */
-.bg-lights {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.bg-lights__blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  will-change: transform;
-  opacity: 0.9;
-}
-
-.bg-lights__blob--a {
-  width: min(55vw, 520px);
-  height: min(55vw, 520px);
-  top: -8%;
-  left: -6%;
-  background: radial-gradient(circle, var(--light-a) 0%, transparent 70%);
-  animation: light-drift-a 32s ease-in-out infinite;
-}
-
-.bg-lights__blob--b {
-  width: min(45vw, 420px);
-  height: min(45vw, 420px);
-  top: 35%;
-  right: -8%;
-  background: radial-gradient(circle, var(--light-b) 0%, transparent 70%);
-  animation: light-drift-b 40s ease-in-out infinite;
-}
-
-.bg-lights__blob--c {
-  width: min(40vw, 360px);
-  height: min(40vw, 360px);
-  bottom: -10%;
-  left: 30%;
-  background: radial-gradient(circle, var(--light-c) 0%, transparent 70%);
-  animation: light-drift-c 28s ease-in-out infinite;
-}
-
-@keyframes light-drift-a {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(12%, 18%) scale(1.12);
-  }
-}
-
-@keyframes light-drift-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-16%, -10%) scale(1.08);
-  }
-}
-
-@keyframes light-drift-c {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(8%, -14%) scale(1.15);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bg-lights__blob {
-    animation: none;
-  }
-}
-
 .app-shell {
   position: relative;
   z-index: 1;
   display: flex;
   min-height: 100%;
   flex-direction: column;
+}
+
+.product-card-frame {
+  box-shadow: 0 4px 20px rgba(28, 23, 20, 0.04);
+}
+
+.group:hover .product-card-frame {
+  border-color: var(--accent);
+  box-shadow: 0 12px 40px rgba(28, 23, 20, 0.08);
+}
+
+html.dark .product-card-frame {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+html.dark .group:hover .product-card-frame {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card-frame {
+    transition: border-color 0.2s ease;
+  }
 }
 
 .aurora-container canvas {

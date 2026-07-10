@@ -27,22 +27,6 @@ export function BasicInfoStep({ state, categories, errors, onChange }: Props) {
         />
       </Field>
 
-      <Field
-        id="product-description"
-        label="Descrição"
-        optional
-        hint="Detalhes sobre o modelo, material ou ocasião de uso."
-      >
-        <textarea
-          id="product-description"
-          value={state.description}
-          onChange={(e) => onChange("description", e.target.value)}
-          rows={4}
-          className={inputClass}
-          placeholder="Descreva o modelo..."
-        />
-      </Field>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field id="product-price" label="Preço" error={errors.price}>
           <div className="relative">

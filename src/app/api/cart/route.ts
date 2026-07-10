@@ -55,6 +55,18 @@ export async function POST(req: Request) {
   if (product.sizes.length && !body.sizeId) {
     return NextResponse.json({ error: "Selecione o tamanho" }, { status: 400 });
   }
+  if (body.sizeId) {
+    const size = product.sizes.find((s) => s.id === body.sizeId);
+    if (!size) {
+      return NextResponse.json({ error: "Tamanho inválido" }, { status: 400 });
+    }
+    if (body.colorId && size.colorId !== body.colorId) {
+      return NextResponse.json(
+        { error: "Tamanho inválido para a cor selecionada" },
+        { status: 400 }
+      );
+    }
+  }
 
   const session = await auth();
   if (session?.user?.id) {

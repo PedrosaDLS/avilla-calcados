@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import type { Category, ProductFormState } from "./types";
-import { getAllSizes } from "./validation";
 
 type PreviewProduct = {
   id: string;
@@ -16,7 +15,7 @@ type PreviewProduct = {
   isLaunch: boolean;
   category: { name: string };
   colors: { id: string; name: string; hex: string | null }[];
-  sizes: { id: string; size: string }[];
+  sizes: { id: string; size: string; colorId: string }[];
   images: { id: string; url: string; colorId: string | null }[];
 };
 
@@ -30,10 +29,16 @@ export function buildPreviewProduct(
     .map((c, i) => ({ id: `preview-color-${i}`, name: c.name.trim(), hex: c.hex }));
 
   const colorNameToId = Object.fromEntries(colors.map((c) => [c.name, c.id]));
-  const sizes = getAllSizes(state).map((size, i) => ({
-    id: `preview-size-${i}`,
-    size,
-  }));
+  const sizes = state.colors
+    .filter((c) => c.name.trim())
+    .flatMap((c, i) => {
+      const colorId = `preview-color-${i}`;
+      return c.sizes.map((size, j) => ({
+        id: `preview-size-${i}-${j}`,
+        size,
+        colorId,
+      }));
+    });
 
   const images = state.images.map((img, i) => ({
     id: `preview-img-${i}`,
@@ -62,6 +67,7 @@ export function ProductPreview({
   product: PreviewProduct;
 }) {
   const [colorId, setColorId] = useState(product.colors[0]?.id ?? "");
+  const availableSizes = product.sizes.filter((s) => s.colorId === colorId);
   const images = product.images.filter((img) => !img.colorId || img.colorId === colorId);
   const gallery = images.length ? images : product.images;
   const [activeImg, setActiveImg] = useState(gallery[0]?.url ?? null);
@@ -131,9 +137,9 @@ export function ProductPreview({
               ))}
             </div>
           )}
-          {product.sizes.length > 0 && (
+          {availableSizes.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {product.sizes.map((s) => (
+              {availableSizes.map((s) => (
                 <span
                   key={s.id}
                   className="rounded-full border border-[var(--line)] px-2.5 py-1 text-xs"
@@ -157,7 +163,6 @@ export function ReviewSummary({
   categories: Category[];
 }) {
   const category = categories.find((c) => c.id === state.categoryId);
-  const sizes = getAllSizes(state);
   const colors = state.colors.filter((c) => c.name.trim());
 
   return (
@@ -189,7 +194,16 @@ export function ReviewSummary({
         </div>
         <div className="flex justify-between gap-4">
           <dt>Tamanhos</dt>
-          <dd className="text-right text-[var(--ink)]">{sizes.join(", ") || "—"}</dd>
+          <dd className="text-right text-[var(--ink)]">
+            {colors.length
+              ? colors
+                  .map((c) =>
+                    c.sizes.length ? `${c.name.trim()}: ${c.sizes.join(", ")}` : null
+                  )
+                  .filter(Boolean)
+                  .join(" · ") || "—"
+              : "—"}
+          </dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt>Fotos</dt>

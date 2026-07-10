@@ -70,7 +70,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <div className="relative z-[1]">{children}</div>
             </main>
             <footer className="mt-20 border-t border-[var(--line)] py-10 text-center text-sm text-[var(--muted)]">
-              © {new Date().getFullYear()} Àvilla — Calçados femininos
+              <p>© {new Date().getFullYear()} Àvilla — Calçados femininos</p>
+              <p className="mt-3">
+                Desenvolvido por{" "}
+                <a
+                  href="https://wa.me/553899212617"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--ink)] underline decoration-[var(--line)] underline-offset-4 transition hover:text-[var(--accent)] hover:decoration-[var(--accent)]"
+                >
+                  Pedro Henrique Paixão
+                </a>
+              </p>
             </footer>
           </Providers>
         </div>

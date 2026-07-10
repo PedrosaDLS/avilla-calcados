@@ -5,28 +5,25 @@ import { useCallback, useMemo, useState } from "react";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { parseApiResponse } from "./product-form/api";
 import { BasicInfoStep } from "./product-form/BasicInfoStep";
+import { DescriptionStep } from "./product-form/DescriptionStep";
 import { ImagesStep } from "./product-form/ImagesStep";
 import { ReviewStep } from "./product-form/ReviewStep";
 import { SuccessScreen } from "./product-form/SuccessScreen";
 import type { Category, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
-import { DEFAULT_SIZES } from "./product-form/types";
 import { VariantsStep } from "./product-form/VariantsStep";
-import {
-  getAllSizes,
-  mapApiError,
-  validateAll,
-  type StepErrors,
-} from "./product-form/validation";
+import { mapApiError, validateAll, type StepErrors } from "./product-form/validation";
 
 function buildInitialState(
   categories: Category[],
   initial?: ProductFormInitial
 ): ProductFormState {
-  const allSizes = initial?.sizes ?? [];
-  const sizes = allSizes.filter((s) => DEFAULT_SIZES.includes(s));
   const colors = initial?.colors?.length
-    ? initial.colors
-    : [{ name: "", hex: "#d4b5a0" }];
+    ? initial.colors.map((c) => ({
+        name: c.name,
+        hex: c.hex,
+        sizes: [...c.sizes],
+      }))
+    : [];
 
   return {
     name: initial?.name ?? "",
@@ -36,7 +33,6 @@ function buildInitialState(
     isLaunch: initial?.isLaunch ?? false,
     categoryId: initial?.categoryId ?? categories[0]?.id ?? "",
     colors,
-    sizes,
     images: initial?.images ?? [],
   };
 }
@@ -123,7 +119,11 @@ export function ProductForm({
     setSaveError("");
 
     const colors = state.colors
-      .map((c) => ({ name: c.name.trim(), hex: c.hex || null }))
+      .map((c) => ({
+        name: c.name.trim(),
+        hex: c.hex || null,
+        sizes: [...c.sizes].sort((a, b) => Number(a) - Number(b)),
+      }))
       .filter((c) => c.name);
 
     const payload = {
@@ -134,7 +134,6 @@ export function ProductForm({
       isLaunch: state.isLaunch,
       categoryId: state.categoryId,
       colors,
-      sizes: getAllSizes(state),
       images: state.images.map((img, i) => ({
         url: img.url,
         sortOrder: i,
@@ -199,13 +198,6 @@ export function ProductForm({
 
         <section>
           <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-            Cores e numerações
-          </h3>
-          <VariantsStep state={state} errors={errors} onChange={onChange} />
-        </section>
-
-        <section>
-          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
             Fotos
           </h3>
           <ImagesStep
@@ -215,6 +207,20 @@ export function ProductForm({
             onImagesChange={(images) => onChange("images", images)}
             onUpload={uploadFiles}
           />
+        </section>
+
+        <section>
+          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            Descrição
+          </h3>
+          <DescriptionStep state={state} onChange={onChange} />
+        </section>
+
+        <section>
+          <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            Cores e numerações
+          </h3>
+          <VariantsStep state={state} errors={errors} onChange={onChange} />
         </section>
 
         <section id="revisao" className="scroll-mt-6 border-t border-[var(--line)] pt-10">

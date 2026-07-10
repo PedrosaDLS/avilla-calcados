@@ -26,16 +26,10 @@ export function validateBasicInfo(state: ProductFormState): StepErrors {
 
 export function validateVariants(state: ProductFormState): StepErrors {
   const errors: StepErrors = {};
-  const validColors = state.colors.filter((c) => c.name.trim());
+  const incomplete = state.colors.some((c) => !c.name.trim() && c.sizes.length > 0);
 
-  if (!validColors.length) {
-    errors.colors = "Adicione pelo menos uma cor.";
-  } else if (validColors.some((c) => !c.name.trim())) {
-    errors.colors = "Todas as cores precisam de um nome.";
-  }
-
-  if (!state.sizes.length) {
-    errors.sizes = "Selecione pelo menos uma numeração.";
+  if (incomplete) {
+    errors.colors = "Cores com numeração precisam de um nome, ou remova a linha.";
   }
 
   return errors;
@@ -63,7 +57,13 @@ export function validateAll(state: ProductFormState): StepErrors {
 }
 
 export function getAllSizes(state: ProductFormState): string[] {
-  return [...state.sizes].sort((a, b) => Number(a) - Number(b));
+  const unique = new Set<string>();
+  for (const color of state.colors) {
+    for (const size of color.sizes) {
+      unique.add(size);
+    }
+  }
+  return [...unique].sort((a, b) => Number(a) - Number(b));
 }
 
 export function mapApiError(message: string): string {

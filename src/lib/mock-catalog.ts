@@ -165,11 +165,14 @@ function toCardProduct(product: (typeof baseProducts)[number]) {
   return {
     ...product,
     colors: product.colors.map((color) => ({ ...color, productId: product.id })),
-    sizes: product.sizes.map((size, index) => ({
-      id: `${product.id}-size-${index}`,
-      productId: product.id,
-      size,
-    })),
+    sizes: product.colors.flatMap((color) =>
+      product.sizes.map((size, index) => ({
+        id: `${product.id}-size-${color.id}-${index}`,
+        productId: product.id,
+        colorId: color.id,
+        size,
+      }))
+    ),
     images: [
       { id: `${product.id}-img-1`, productId: product.id, url: imageUrl(product.imageSeed, 0), sortOrder: 0, colorId: null },
       { id: `${product.id}-img-2`, productId: product.id, url: imageUrl(product.imageSeed, 1), sortOrder: 1, colorId: null },
@@ -222,7 +225,7 @@ export function getMockFilterOptions() {
 
 export function getMockHomePageData() {
   const heroProducts = [...products]
-    .filter((product) => product.isLaunch || product.viewCount > 0)
+    .filter((product) => product.images.length > 0 && (product.isLaunch || product.viewCount > 0))
     .sort((a, b) => {
       if (a.isLaunch !== b.isLaunch) return a.isLaunch ? -1 : 1;
       return b.viewCount - a.viewCount;
