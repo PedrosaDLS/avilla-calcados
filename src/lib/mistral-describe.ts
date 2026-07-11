@@ -16,6 +16,7 @@ export function resolvePublicImageUrl(url: string): string {
     "https://avilla-calcados.vercel.app"
   )
     .trim()
+    .replace(/^["']|["']$/g, "")
     .replace(/\/$/, "");
 
   return `${base}${url.startsWith("/") ? url : `/${url}`}`;
