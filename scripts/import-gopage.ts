@@ -191,7 +191,7 @@ async function importProduct(
   const existing = await prisma.product.findUnique({ where: { slug } });
   const data = {
     name: cleanProductName(product.name),
-    description: product.description ?? "",
+    description: "",
     material: extractGopageMaterial(product.description),
     price: product.price,
     promoPrice: product.sale_price,

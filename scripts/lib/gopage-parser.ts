@@ -169,3 +169,24 @@ export function extractGopageMaterial(description: string | null | undefined): s
   const raw = match[1].replace(/<[^>]+>/g, "").trim();
   return MATERIAL_MAP[raw] ?? raw;
 }
+
+export function isGopageCatalogDescription(description: string | null | undefined): boolean {
+  if (!description?.trim()) return false;
+  return /Material\s*:/i.test(description) || /Altura do salto/i.test(description);
+}
+
+export function stripGopageCatalogDescription(description: string | null | undefined): string {
+  if (!description?.trim()) return "";
+
+  return description
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(
+      (line) =>
+        line.length > 0 &&
+        !/^Material\s*:/i.test(line) &&
+        !/^Altura do salto/i.test(line)
+    )
+    .join("\n")
+    .trim();
+}

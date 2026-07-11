@@ -49,7 +49,7 @@ export function DescriptionStep({ state, onChange }: Props) {
             <span className="ml-1 font-normal text-[var(--muted)]">(opcional)</span>
           </label>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Suporta Markdown. Detalhes sobre o modelo, material ou ocasião de uso.
+            Suporta Markdown. Detalhes sobre o modelo, salto ou ocasião de uso.
           </p>
         </div>
         <button

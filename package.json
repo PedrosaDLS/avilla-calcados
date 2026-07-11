@@ -12,6 +12,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:import-gopage": "tsx scripts/import-gopage.ts",
     "db:sync-materials": "tsx scripts/sync-gopage-materials.ts",
+    "db:regenerate-descriptions": "tsx scripts/regenerate-descriptions.ts",
     "db:clean-names": "tsx scripts/clean-product-names.ts",
     "db:push": "prisma db push",
     "postinstall": "prisma generate"
