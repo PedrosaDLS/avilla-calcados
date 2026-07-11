@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
@@ -13,13 +13,12 @@ type ProductDetail = {
   name: string;
   slug: string;
   description: string;
+  material: string;
   price: string | number;
   promoPrice: string | number | null;
   isLaunch: boolean;
   category: { name: string };
-  colors: { id: string; name: string; hex: string | null }[];
-  sizes: { id: string; size: string; colorId: string }[];
-  images: { id: string; url: string; colorId: string | null }[];
+  images: { id: string; url: string }[];
 };
 
 function GalleryArrow({
@@ -59,10 +58,6 @@ function GalleryArrow({
 
 export function ProductDetailClient({ product }: { product: ProductDetail }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [colorId, setColorId] = useState(product.colors[0]?.id ?? "");
-  const availableSizes = product.sizes.filter((s) => s.colorId === colorId);
-  const [sizeId, setSizeId] = useState(availableSizes[0]?.id ?? "");
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -76,39 +71,7 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
     }).catch(() => {});
   }, [product.id]);
 
-  const images = product.images.filter((img) => !img.colorId || img.colorId === colorId);
-  const gallery = images.length ? images : product.images;
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [colorId, gallery.length]);
-
-  useEffect(() => {
-    const nextSizes = product.sizes.filter((s) => s.colorId === colorId);
-    setSizeId((current) =>
-      nextSizes.some((s) => s.id === current) ? current : (nextSizes[0]?.id ?? "")
-    );
-  }, [colorId, product.sizes]);
-
-  useEffect(() => {
-    const cor = searchParams.get("cor");
-    if (!cor) return;
-    const match = product.colors.find(
-      (c) => c.name.localeCompare(cor, "pt-BR", { sensitivity: "accent" }) === 0
-    );
-    if (match) setColorId(match.id);
-  }, [searchParams, product.colors]);
-
-  useEffect(() => {
-    const tamanho = searchParams.get("tamanho");
-    if (!tamanho) return;
-    const nextSizes = product.sizes.filter((s) => s.colorId === colorId);
-    const match = nextSizes.find(
-      (s) => s.size.localeCompare(tamanho, "pt-BR", { sensitivity: "accent" }) === 0
-    );
-    if (match) setSizeId(match.id);
-  }, [searchParams, colorId, product.sizes]);
-
+  const gallery = product.images;
   const activeImg = gallery[activeIndex]?.url ?? null;
   const hasMultiple = gallery.length > 1;
 
@@ -133,8 +96,6 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
   const price = effectivePrice(product.price, product.promoPrice);
   const hasPromo =
     product.promoPrice != null && Number(product.promoPrice) < Number(product.price);
-  const colorName = product.colors.find((c) => c.id === colorId)?.name;
-  const sizeLabel = availableSizes.find((s) => s.id === sizeId)?.size;
 
   async function addToCart() {
     setBusy(true);
@@ -145,8 +106,6 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
-          colorId: colorId || null,
-          sizeId: sizeId || null,
           qty,
         }),
       });
@@ -229,56 +188,13 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
             </span>
           )}
         </div>
+        {product.material && (
+          <p className="mt-5 text-sm text-[var(--muted)]">
+            Material: <span className="text-[var(--ink)]">{product.material}</span>
+          </p>
+        )}
         {product.description && (
           <MarkdownContent content={product.description} className="mt-5 md:mt-6" />
-        )}
-
-        {product.colors.length > 0 && (
-          <div className="mt-8">
-            <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Cor</p>
-            <div className="flex flex-wrap gap-2">
-              {product.colors.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setColorId(c.id)}
-                  className={`flex items-center gap-2 border px-3 py-2 text-sm ${
-                    colorId === c.id
-                      ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--bg)]"
-                      : "border-[var(--line)]"
-                  }`}
-                >
-                  <span
-                    className="h-3 w-3 rounded-full border border-black/10"
-                    style={{ background: c.hex || "#ccc" }}
-                  />
-                  {c.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {availableSizes.length > 0 && (
-          <div className="mt-6">
-            <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Numeração</p>
-            <div className="flex flex-wrap gap-2">
-              {availableSizes.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSizeId(s.id)}
-                  className={`min-w-11 border px-3 py-2 text-sm ${
-                    sizeId === s.id
-                      ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--bg)]"
-                      : "border-[var(--line)]"
-                  }`}
-                >
-                  {s.size}
-                </button>
-              ))}
-            </div>
-          </div>
         )}
 
         <div className="mt-6 flex items-center gap-3">
@@ -304,8 +220,6 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
             item={{
               name: product.name,
               slug: product.slug,
-              color: colorName,
-              size: sizeLabel,
               qty,
             }}
             className="sm:flex-1"

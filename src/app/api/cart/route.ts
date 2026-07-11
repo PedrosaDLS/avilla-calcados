@@ -6,8 +6,6 @@ import { GUEST_CART_COOKIE, getOrCreateUserCart, type GuestCartItem } from "@/li
 
 const itemSchema = z.object({
   productId: z.string().min(1),
-  colorId: z.string().optional().nullable(),
-  sizeId: z.string().optional().nullable(),
   qty: z.number().int().min(1).max(20).default(1),
 });
 
@@ -46,27 +44,8 @@ export async function POST(req: Request) {
   const body = itemSchema.parse(await req.json());
   const product = await prisma.product.findUnique({
     where: { id: body.productId },
-    include: { colors: true, sizes: true },
   });
   if (!product) return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
-  if (product.colors.length && !body.colorId) {
-    return NextResponse.json({ error: "Selecione a cor" }, { status: 400 });
-  }
-  if (product.sizes.length && !body.sizeId) {
-    return NextResponse.json({ error: "Selecione o tamanho" }, { status: 400 });
-  }
-  if (body.sizeId) {
-    const size = product.sizes.find((s) => s.id === body.sizeId);
-    if (!size) {
-      return NextResponse.json({ error: "Tamanho inválido" }, { status: 400 });
-    }
-    if (body.colorId && size.colorId !== body.colorId) {
-      return NextResponse.json(
-        { error: "Tamanho inválido para a cor selecionada" },
-        { status: 400 }
-      );
-    }
-  }
 
   const session = await auth();
   if (session?.user?.id) {
@@ -75,8 +54,8 @@ export async function POST(req: Request) {
       where: {
         cartId: cart.id,
         productId: body.productId,
-        colorId: body.colorId ?? null,
-        sizeId: body.sizeId ?? null,
+        colorId: null,
+        sizeId: null,
       },
     });
     if (existing) {
@@ -89,8 +68,6 @@ export async function POST(req: Request) {
         data: {
           cartId: cart.id,
           productId: body.productId,
-          colorId: body.colorId ?? null,
-          sizeId: body.sizeId ?? null,
           qty: body.qty,
         },
       });
@@ -100,18 +77,11 @@ export async function POST(req: Request) {
 
   const cookie = req.headers.get("cookie")?.match(/avilla_cart=([^;]+)/)?.[1];
   const items = parseGuest(cookie);
-  const idx = items.findIndex(
-    (i) =>
-      i.productId === body.productId &&
-      (i.colorId ?? null) === (body.colorId ?? null) &&
-      (i.sizeId ?? null) === (body.sizeId ?? null)
-  );
+  const idx = items.findIndex((i) => i.productId === body.productId);
   if (idx >= 0) items[idx].qty += body.qty;
   else
     items.push({
       productId: body.productId,
-      colorId: body.colorId ?? null,
-      sizeId: body.sizeId ?? null,
       qty: body.qty,
     });
   const res = NextResponse.json({ ok: true });

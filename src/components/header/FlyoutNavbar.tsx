@@ -121,7 +121,7 @@ export function FlyoutNavbar() {
           href="/"
           className="logo-brand absolute left-1/2 -translate-x-1/2 text-[var(--ink)]"
         >
-          àvilla
+          ávilla
         </Link>
 
         <div className="hidden items-center gap-3 md:flex">

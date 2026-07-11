@@ -7,8 +7,6 @@ export const GUEST_CART_COOKIE = "avilla_cart";
 
 export type GuestCartItem = {
   productId: string;
-  colorId?: string | null;
-  sizeId?: string | null;
   qty: number;
 };
 
@@ -41,8 +39,6 @@ export async function getCartView() {
         items: {
           include: {
             product: { include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-            color: true,
-            size: true,
           },
         },
       },
@@ -55,10 +51,7 @@ export async function getCartView() {
         name: item.product.name,
         slug: item.product.slug,
         imageUrl: item.product.images[0]?.url ?? null,
-        colorId: item.colorId,
-        colorName: item.color?.name ?? null,
-        sizeId: item.sizeId,
-        sizeLabel: item.size?.size ?? null,
+        material: item.product.material || null,
         qty: item.qty,
         unitPrice: unit,
         lineTotal: unit * item.qty,
@@ -75,8 +68,6 @@ export async function getCartView() {
     where: { id: { in: guest.map((g) => g.productId) } },
     include: {
       images: { orderBy: { sortOrder: "asc" }, take: 1 },
-      colors: true,
-      sizes: true,
     },
   });
   const byId = new Map(products.map((p) => [p.id, p]));
@@ -85,8 +76,6 @@ export async function getCartView() {
     .map((g, idx) => {
       const product = byId.get(g.productId);
       if (!product) return null;
-      const color = product.colors.find((c) => c.id === g.colorId);
-      const size = product.sizes.find((s) => s.id === g.sizeId);
       const unit = effectivePrice(product.price, product.promoPrice);
       return {
         id: `guest-${idx}`,
@@ -94,10 +83,7 @@ export async function getCartView() {
         name: product.name,
         slug: product.slug,
         imageUrl: product.images[0]?.url ?? null,
-        colorId: g.colorId ?? null,
-        colorName: color?.name ?? null,
-        sizeId: g.sizeId ?? null,
-        sizeLabel: size?.size ?? null,
+        material: product.material || null,
         qty: g.qty,
         unitPrice: unit,
         lineTotal: unit * g.qty,
@@ -109,10 +95,7 @@ export async function getCartView() {
     name: string;
     slug: string;
     imageUrl: string | null;
-    colorId: string | null;
-    colorName: string | null;
-    sizeId: string | null;
-    sizeLabel: string | null;
+    material: string | null;
     qty: number;
     unitPrice: number;
     lineTotal: number;

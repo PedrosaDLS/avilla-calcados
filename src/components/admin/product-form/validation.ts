@@ -1,4 +1,5 @@
 import type { ProductFormState } from "./types";
+import { resolveMaterial } from "./types";
 
 export type StepErrors = Record<string, string>;
 
@@ -24,14 +25,14 @@ export function validateBasicInfo(state: ProductFormState): StepErrors {
   return errors;
 }
 
-export function validateVariants(state: ProductFormState): StepErrors {
+export function validateMaterial(state: ProductFormState): StepErrors {
   const errors: StepErrors = {};
-  const incomplete = state.colors.some((c) => !c.name.trim() && c.sizes.length > 0);
-
-  if (incomplete) {
-    errors.colors = "Cores com numeração precisam de um nome, ou remova a linha.";
+  if (state.materialType === "custom" && !state.materialCustom.trim()) {
+    errors.material = "Informe o material personalizado ou escolha outra opção.";
   }
-
+  if (state.materialType === "preset" && !state.materialPreset) {
+    errors.material = "Selecione um material.";
+  }
   return errors;
 }
 
@@ -40,30 +41,19 @@ export function validateImages(state: ProductFormState): StepErrors {
   if (!state.images.length) {
     errors.images = "Informe pelo menos uma foto.";
   }
-  const hasColors = state.colors.some((c) => c.name.trim());
-  if (hasColors && state.images.some((img) => !img.colorNames.length)) {
-    errors.images =
-      "Selecione ao menos uma cor por foto ou remova cores que não serão usadas.";
-  }
   return errors;
 }
 
 export function validateAll(state: ProductFormState): StepErrors {
+  const materialErrors =
+    state.materialType === "custom" || state.materialType === "preset"
+      ? validateMaterial(state)
+      : {};
   return {
     ...validateBasicInfo(state),
-    ...validateVariants(state),
+    ...materialErrors,
     ...validateImages(state),
   };
-}
-
-export function getAllSizes(state: ProductFormState): string[] {
-  const unique = new Set<string>();
-  for (const color of state.colors) {
-    for (const size of color.sizes) {
-      unique.add(size);
-    }
-  }
-  return [...unique].sort((a, b) => Number(a) - Number(b));
 }
 
 export function mapApiError(message: string): string {
@@ -77,4 +67,8 @@ export function mapApiError(message: string): string {
     return "Falha no upload. Verifique o arquivo e tente novamente.";
   }
   return message || "Erro ao salvar. Tente novamente.";
+}
+
+export function getResolvedMaterial(state: ProductFormState): string {
+  return resolveMaterial(state);
 }

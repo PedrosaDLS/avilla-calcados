@@ -33,6 +33,7 @@ model Product {
   name        String
   slug        String         @unique
   description String         @default("")
+  material    String         @default("")
   price       Decimal        @db.Decimal(10, 2)
   promoPrice  Decimal?       @db.Decimal(10, 2)
   isLaunch    Boolean        @default(false)

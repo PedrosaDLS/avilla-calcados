@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import type { Category, ProductFormState } from "./types";
+import { resolveMaterial } from "./types";
 
 type PreviewProduct = {
   id: string;
@@ -14,10 +14,9 @@ type PreviewProduct = {
   price: number;
   promoPrice: number | null;
   isLaunch: boolean;
+  material: string;
   category: { name: string };
-  colors: { id: string; name: string; hex: string | null }[];
-  sizes: { id: string; size: string; colorId: string }[];
-  images: { id: string; url: string; colorId: string | null }[];
+  images: { id: string; url: string }[];
 };
 
 export function buildPreviewProduct(
@@ -25,29 +24,6 @@ export function buildPreviewProduct(
   categories: Category[]
 ): PreviewProduct {
   const category = categories.find((c) => c.id === state.categoryId);
-  const colors = state.colors
-    .filter((c) => c.name.trim())
-    .map((c, i) => ({ id: `preview-color-${i}`, name: c.name.trim(), hex: c.hex }));
-
-  const colorNameToId = Object.fromEntries(colors.map((c) => [c.name, c.id]));
-  const sizes = state.colors
-    .filter((c) => c.name.trim())
-    .flatMap((c, i) => {
-      const colorId = `preview-color-${i}`;
-      return c.sizes.map((size, j) => ({
-        id: `preview-size-${i}-${j}`,
-        size,
-        colorId,
-      }));
-    });
-
-  const images = state.images.flatMap((img, i) =>
-    (img.colorNames.length ? img.colorNames : [null]).map((colorName, j) => ({
-      id: `preview-img-${i}-${j}`,
-      url: img.url,
-      colorId: colorName ? colorNameToId[colorName] ?? null : null,
-    }))
-  );
 
   return {
     id: "preview",
@@ -57,10 +33,12 @@ export function buildPreviewProduct(
     price: Number(state.price) || 0,
     promoPrice: state.promoPrice.trim() ? Number(state.promoPrice) : null,
     isLaunch: state.isLaunch,
+    material: resolveMaterial(state),
     category: { name: category?.name ?? "Categoria" },
-    colors,
-    sizes,
-    images,
+    images: state.images.map((img, i) => ({
+      id: `preview-img-${i}`,
+      url: img.url,
+    })),
   };
 }
 
@@ -69,15 +47,7 @@ export function ProductPreview({
 }: {
   product: PreviewProduct;
 }) {
-  const [colorId, setColorId] = useState(product.colors[0]?.id ?? "");
-  const availableSizes = product.sizes.filter((s) => s.colorId === colorId);
-  const images = product.images.filter((img) => !img.colorId || img.colorId === colorId);
-  const gallery = images.length ? images : product.images;
-  const [activeImg, setActiveImg] = useState(gallery[0]?.url ?? null);
-
-  useEffect(() => {
-    setActiveImg(gallery[0]?.url ?? null);
-  }, [colorId, gallery]);
+  const activeImg = product.images[0]?.url ?? null;
   const price = effectivePrice(product.price, product.promoPrice);
   const hasPromo =
     product.promoPrice != null && product.promoPrice < product.price;
@@ -123,42 +93,13 @@ export function ProductPreview({
               </span>
             )}
           </div>
+          {product.material && (
+            <p className="mt-4 text-sm text-[var(--muted)]">
+              Material: <span className="text-[var(--ink)]">{product.material}</span>
+            </p>
+          )}
           {product.description && (
             <MarkdownContent content={product.description} className="mt-4 md:mt-5" />
-          )}
-          {product.colors.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {product.colors.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setColorId(c.id)}
-                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
-                    colorId === c.id
-                      ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--bg)]"
-                      : "border-[var(--line)]"
-                  }`}
-                >
-                  <span
-                    className="h-3 w-3 rounded-full border border-black/10"
-                    style={{ background: c.hex || "#ccc" }}
-                  />
-                  {c.name}
-                </button>
-              ))}
-            </div>
-          )}
-          {availableSizes.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {availableSizes.map((s) => (
-                <span
-                  key={s.id}
-                  className="rounded-full border border-[var(--line)] px-2.5 py-1 text-xs"
-                >
-                  {s.size}
-                </span>
-              ))}
-            </div>
           )}
         </div>
       </div>
@@ -174,7 +115,7 @@ export function ReviewSummary({
   categories: Category[];
 }) {
   const category = categories.find((c) => c.id === state.categoryId);
-  const colors = state.colors.filter((c) => c.name.trim());
+  const material = resolveMaterial(state);
 
   return (
     <div className="rounded-2xl border border-[var(--line)] bg-[var(--bg-elevated)] p-4 text-sm">
@@ -200,21 +141,8 @@ export function ReviewSummary({
           </dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt>Cores</dt>
-          <dd className="text-right text-[var(--ink)]">{colors.length || "—"}</dd>
-        </div>
-        <div className="flex justify-between gap-4">
-          <dt>Tamanhos</dt>
-          <dd className="text-right text-[var(--ink)]">
-            {colors.length
-              ? colors
-                  .map((c) =>
-                    c.sizes.length ? `${c.name.trim()}: ${c.sizes.join(", ")}` : null
-                  )
-                  .filter(Boolean)
-                  .join(" · ") || "—"
-              : "—"}
-          </dd>
+          <dt>Material</dt>
+          <dd className="text-right text-[var(--ink)]">{material || "—"}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt>Fotos</dt>

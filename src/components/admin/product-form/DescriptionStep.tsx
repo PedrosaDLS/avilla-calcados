@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { inputClass } from "./Field";
 import { parseApiResponse } from "./api";
 import type { ProductFormState } from "./types";
@@ -95,13 +94,6 @@ export function DescriptionStep({ state, onChange }: Props) {
         className={inputClass}
         placeholder="Descreva o modelo... (Markdown: **negrito**, - listas)"
       />
-
-      {state.description.trim() && (
-        <div className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--bg-elevated)] p-4 md:p-5">
-          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Prévia</p>
-          <MarkdownContent content={state.description} />
-        </div>
-      )}
 
       {state.images.length === 0 && (
         <p className="text-xs text-[var(--muted)]">Adicione fotos antes de usar a IA.</p>

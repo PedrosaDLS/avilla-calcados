@@ -16,8 +16,6 @@ export function ImagesStep({ state, errors, uploading, onImagesChange, onUpload 
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const colorOptions = state.colors.filter((c) => c.name.trim());
-
   function moveImage(index: number, direction: -1 | 1) {
     const next = [...state.images];
     const target = index + direction;
@@ -28,18 +26,6 @@ export function ImagesStep({ state, errors, uploading, onImagesChange, onUpload 
 
   function removeImage(index: number) {
     onImagesChange(state.images.filter((_, i) => i !== index));
-  }
-
-  function toggleImageColor(index: number, colorName: string) {
-    onImagesChange(
-      state.images.map((img, i) => {
-        if (i !== index) return img;
-        const selected = img.colorNames.includes(colorName)
-          ? img.colorNames.filter((name) => name !== colorName)
-          : [...img.colorNames, colorName];
-        return { ...img, colorNames: selected };
-      })
-    );
   }
 
   async function handleDrop(e: React.DragEvent) {
@@ -93,12 +79,6 @@ export function ImagesStep({ state, errors, uploading, onImagesChange, onUpload 
         </div>
       </Field>
 
-      {colorOptions.length > 0 && state.images.some((img) => !img.colorNames.length) && (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-          Selecione ao menos uma cor por foto para a vitrine exibir as imagens corretas.
-        </p>
-      )}
-
       <div className="space-y-4">
         {state.images.map((img, index) => (
           <div
@@ -114,37 +94,7 @@ export function ImagesStep({ state, errors, uploading, onImagesChange, onUpload 
               )}
             </div>
 
-            <div className="min-w-0 flex-1 space-y-2">
-              {colorOptions.length > 0 && (
-                <fieldset className="block">
-                  <legend className="text-xs text-[var(--muted)]">
-                    Cores desta foto (pode selecionar mais de uma)
-                  </legend>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {colorOptions.map((c) => {
-                      const active = img.colorNames.includes(c.name);
-                      return (
-                        <button
-                          key={c.name}
-                          type="button"
-                          onClick={() => toggleImageColor(index, c.name)}
-                          className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
-                            active
-                              ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--bg)]"
-                              : "border-[var(--line)] hover:border-[var(--accent)]"
-                          }`}
-                        >
-                          <span
-                            className="h-3 w-3 rounded-full border border-black/10"
-                            style={{ background: c.hex || "#ccc" }}
-                          />
-                          {c.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              )}
+            <div className="min-w-0 flex-1">
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"

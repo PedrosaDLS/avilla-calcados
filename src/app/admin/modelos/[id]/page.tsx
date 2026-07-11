@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { groupImagesForForm } from "@/lib/product-images";
 import { ProductForm } from "@/components/admin/ProductForm";
 
 type Props = { params: Promise<{ id: string }> };
@@ -10,11 +9,13 @@ export default async function EditModeloPage({ params }: Props) {
   const [product, categories] = await Promise.all([
     prisma.product.findUnique({
       where: { id },
-      include: { colors: true, sizes: true, images: { orderBy: { sortOrder: "asc" } } },
+      include: { images: { orderBy: { sortOrder: "asc" } } },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
   if (!product) notFound();
+
+  const uniqueImages = [...new Map(product.images.map((img) => [img.url, img])).values()];
 
   return (
     <div>
@@ -32,15 +33,8 @@ export default async function EditModeloPage({ params }: Props) {
           promoPrice: product.promoPrice != null ? Number(product.promoPrice) : null,
           isLaunch: product.isLaunch,
           categoryId: product.categoryId,
-          colors: product.colors.map((c) => ({
-            name: c.name,
-            hex: c.hex,
-            sizes: product.sizes
-              .filter((s) => s.colorId === c.id)
-              .map((s) => s.size)
-              .sort((a, b) => Number(a) - Number(b)),
-          })),
-          images: groupImagesForForm(product.images, product.colors),
+          material: product.material,
+          images: uniqueImages.map((img) => ({ url: img.url })),
         }}
       />
     </div>

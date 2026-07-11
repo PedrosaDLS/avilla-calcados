@@ -12,13 +12,11 @@ import {
 export function WhatsAppButton({
   item,
   items,
-  total,
   className = "",
   label = "Pedir no WhatsApp",
 }: {
   item?: WhatsAppItem;
   items?: WhatsAppItem[];
-  total?: number;
   className?: string;
   label?: string;
 }) {
@@ -29,7 +27,7 @@ export function WhatsAppButton({
   }, []);
 
   const text = items
-    ? messageForCart(items, total, origin)
+    ? messageForCart(items, origin)
     : item
       ? messageForProduct(item, origin)
       : "";

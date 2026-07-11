@@ -18,8 +18,8 @@ const body = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Àvilla | Calçados Femininos",
-  description: "Catálogo Àvilla — elegância e conforto em cada passo.",
+  title: "Ávilla | Calçados Femininos",
+  description: "Catálogo Ávilla — moda, qualidade e conforto.",
 };
 
 const themeInitScript = `

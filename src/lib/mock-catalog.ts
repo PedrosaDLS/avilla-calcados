@@ -164,6 +164,7 @@ function imageUrl(seed: number, index = 0) {
 function toCardProduct(product: (typeof baseProducts)[number]) {
   return {
     ...product,
+    material: "Couro Legítimo",
     colors: product.colors.map((color) => ({ ...color, productId: product.id })),
     sizes: product.colors.flatMap((color) =>
       product.sizes.map((size, index) => ({

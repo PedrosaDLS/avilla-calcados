@@ -16,17 +16,19 @@ async function loadBrandFont() {
 export async function generateBrandIcon(size: number) {
   const fontData = await loadBrandFont();
   const fontSize = Math.round(size * 0.36);
+  const radius = Math.round(size * 0.22);
 
   return new ImageResponse(
     (
       <div
         style={{
-          background: "#f7f3ee",
+          background: "#FF0000",
           width: "100%",
           height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          borderRadius: radius,
         }}
       >
         <div
@@ -34,13 +36,13 @@ export async function generateBrandIcon(size: number) {
             fontFamily: "Bauhaus Std",
             fontWeight: 900,
             fontSize,
-            color: "#1c1714",
+            color: "#ffffff",
             letterSpacing: "-0.03em",
             lineHeight: 1,
             transform: "translateY(4%)",
           }}
         >
-          àvilla
+          ávilla
         </div>
       </div>
     ),

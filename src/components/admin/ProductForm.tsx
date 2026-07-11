@@ -7,23 +7,18 @@ import { parseApiResponse } from "./product-form/api";
 import { BasicInfoStep } from "./product-form/BasicInfoStep";
 import { DescriptionStep } from "./product-form/DescriptionStep";
 import { ImagesStep } from "./product-form/ImagesStep";
+import { MaterialStep } from "./product-form/MaterialStep";
 import { ReviewStep } from "./product-form/ReviewStep";
 import { SuccessScreen } from "./product-form/SuccessScreen";
 import type { Category, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
-import { VariantsStep } from "./product-form/VariantsStep";
+import { materialToFormState, resolveMaterial } from "./product-form/types";
 import { mapApiError, validateAll, type StepErrors } from "./product-form/validation";
 
 function buildInitialState(
   categories: Category[],
   initial?: ProductFormInitial
 ): ProductFormState {
-  const colors = initial?.colors?.length
-    ? initial.colors.map((c) => ({
-        name: c.name,
-        hex: c.hex,
-        sizes: [...c.sizes],
-      }))
-    : [];
+  const materialFields = materialToFormState(initial?.material);
 
   return {
     name: initial?.name ?? "",
@@ -32,7 +27,7 @@ function buildInitialState(
     promoPrice: initial?.promoPrice != null ? String(initial.promoPrice) : "",
     isLaunch: initial?.isLaunch ?? false,
     categoryId: initial?.categoryId ?? categories[0]?.id ?? "",
-    colors,
+    ...materialFields,
     images: initial?.images ?? [],
   };
 }
@@ -97,7 +92,7 @@ export function ProductForm({
         if (typeof data.url !== "string") {
           throw new Error("Resposta de upload inválida.");
         }
-        uploaded.push({ url: data.url, colorNames: [] });
+        uploaded.push({ url: data.url });
       }
       setState((prev) => ({ ...prev, images: [...prev.images, ...uploaded] }));
     } catch (e) {
@@ -118,14 +113,6 @@ export function ProductForm({
     setBusy(true);
     setSaveError("");
 
-    const colors = state.colors
-      .map((c) => ({
-        name: c.name.trim(),
-        hex: c.hex || null,
-        sizes: [...c.sizes].sort((a, b) => Number(a) - Number(b)),
-      }))
-      .filter((c) => c.name);
-
     const payload = {
       name: state.name.trim(),
       description: state.description.trim(),
@@ -133,11 +120,10 @@ export function ProductForm({
       promoPrice: state.promoPrice.trim() ? Number(state.promoPrice) : null,
       isLaunch: state.isLaunch,
       categoryId: state.categoryId,
-      colors,
+      material: resolveMaterial(state),
       images: state.images.map((img, i) => ({
         url: img.url,
         sortOrder: i,
-        colorNames: [...new Set(img.colorNames)],
       })),
     };
 
@@ -198,9 +184,9 @@ export function ProductForm({
 
         <section>
           <h3 className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-            Cores e numerações
+            Material
           </h3>
-          <VariantsStep state={state} errors={errors} onChange={onChange} />
+          <MaterialStep state={state} errors={errors} onChange={onChange} />
         </section>
 
         <section>

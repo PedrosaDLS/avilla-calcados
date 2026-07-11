@@ -181,18 +181,18 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
         <div className="relative text-[var(--ink)]">
           <div className="md:hidden">
             <p className="mb-4 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">
-              Avilla Calçados
+              Ávilla Calçados
             </p>
             <h1 className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)]">
-              Elegância que caminha com você
+              Conforto que caminha com você
             </h1>
             <p className="mt-5 max-w-md text-base leading-relaxed text-[var(--muted)]">
-              Elegância e conforto para cada passo.
+              Moda, qualidade e conforto
             </p>
           </div>
           <div className="hidden md:block">
             <BlurText
-              text="Avilla Calçados"
+              text="Ávilla Calçados"
               delay={80}
               animateBy="words"
               direction="top"
@@ -200,10 +200,10 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
               className="mb-4 text-xs uppercase tracking-[0.35em] text-[var(--muted)]"
             />
             <h1 className="font-[family-name:var(--font-display)] text-4xl leading-[1.05] text-[var(--ink)] md:text-6xl">
-              Elegância que caminha com você
+              Conforto que caminha com você
             </h1>
             <BlurText
-              text="Elegância e conforto para cada passo."
+              text="Moda, qualidade e conforto"
               delay={40}
               animateBy="words"
               direction="top"

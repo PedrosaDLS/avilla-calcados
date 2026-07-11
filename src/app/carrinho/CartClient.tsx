@@ -14,8 +14,7 @@ type CartItemView = {
   name: string;
   slug: string;
   imageUrl: string | null;
-  colorName: string | null;
-  sizeLabel: string | null;
+  material: string | null;
   qty: number;
   unitPrice: number;
   lineTotal: number;
@@ -73,7 +72,7 @@ export function CartClient({
                 {item.name}
               </Link>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                {[item.colorName && `Cor ${item.colorName}`, item.sizeLabel && `Núm ${item.sizeLabel}`]
+                {[item.material && `Material ${item.material}`, `Qtd ${item.qty}`]
                   .filter(Boolean)
                   .join(" · ")}
               </p>
@@ -109,12 +108,9 @@ export function CartClient({
           items={items.map((i) => ({
             name: i.name,
             slug: i.slug,
-            color: i.colorName,
-            size: i.sizeLabel,
+            material: i.material,
             qty: i.qty,
-            price: i.unitPrice,
           }))}
-          total={total}
           className="w-full sm:w-auto"
         />
       </div>
