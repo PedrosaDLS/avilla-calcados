@@ -10,13 +10,13 @@ Apenas o texto final, sem blocos de código.`;
 export function resolvePublicImageUrl(url: string): string {
   if (/^https?:\/\//i.test(url)) return url;
 
-  const base = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "")
+  const base = (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    "https://avilla-calcados.vercel.app"
+  )
     .trim()
     .replace(/\/$/, "");
-
-  if (!base) {
-    throw new Error("NEXT_PUBLIC_APP_URL ou NEXTAUTH_URL necessária para imagens relativas.");
-  }
 
   return `${base}${url.startsWith("/") ? url : `/${url}`}`;
 }
