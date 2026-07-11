@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { Providers } from "@/components/Providers";
@@ -20,6 +20,19 @@ const body = DM_Sans({
 export const metadata: Metadata = {
   title: "Ávilla | Calçados Femininos",
   description: "Catálogo Ávilla — moda, qualidade e conforto.",
+  applicationName: "Ávilla",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Ávilla",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#FF0000",
 };
 
 const themeInitScript = `

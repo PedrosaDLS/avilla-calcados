@@ -36,10 +36,11 @@ export async function generateBrandIcon(size: number) {
             fontFamily: "Bauhaus Std",
             fontWeight: 900,
             fontSize,
-            color: "#ffffff",
+            color: "#000000",
             letterSpacing: "-0.03em",
             lineHeight: 1,
-            transform: "translateY(4%)",
+            textAlign: "center",
+            width: "100%",
           }}
         >
           ávilla

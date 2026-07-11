@@ -1,27 +1,50 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import { DeleteProductButton } from "./DeleteProductButton";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
+import { AdminModelosToolbar } from "./AdminModelosToolbar";
 
-export default async function AdminModelosPage() {
+type Props = {
+  searchParams: Promise<{ q?: string; sort?: string }>;
+};
+
+export default async function AdminModelosPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const q = sp.q?.trim() ?? "";
+  const sort = sp.sort === "views" ? "views" : "recent";
+
   const products = await prisma.product.findMany({
+    where: q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { category: { name: { contains: q, mode: "insensitive" } } },
+          ],
+        }
+      : undefined,
     include: {
       category: true,
       images: { orderBy: { sortOrder: "asc" }, take: 1 },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: sort === "views" ? { viewCount: "desc" } : { createdAt: "desc" },
   });
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between gap-3">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-xl font-medium">Modelos</h2>
         <RoundedSlideButton href="/admin/modelos/novo" className="!px-4 !py-2">
           Novo
         </RoundedSlideButton>
       </div>
+
+      <Suspense fallback={null}>
+        <AdminModelosToolbar key={`${q}-${sort}`} initialQuery={q} initialSort={sort} />
+      </Suspense>
+
       <ul className="space-y-3">
         {products.map((p) => (
           <li
@@ -46,7 +69,9 @@ export default async function AdminModelosPage() {
           </li>
         ))}
         {!products.length && (
-          <p className="py-10 text-center text-[var(--muted)]">Nenhum modelo ainda.</p>
+          <p className="py-10 text-center text-[var(--muted)]">
+            {q ? "Nenhum modelo encontrado." : "Nenhum modelo ainda."}
+          </p>
         )}
       </ul>
     </div>

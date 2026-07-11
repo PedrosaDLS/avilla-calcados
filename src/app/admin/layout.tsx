@@ -6,7 +6,6 @@ import { auth } from "@/lib/auth";
 const links = [
   { href: "/admin", label: "Painel" },
   { href: "/admin/modelos", label: "Modelos" },
-  { href: "/admin/acessos", label: "Acessos" },
   { href: "/admin/usuarios", label: "Usuários" },
 ];
 
