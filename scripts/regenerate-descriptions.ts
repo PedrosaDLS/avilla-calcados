@@ -1,9 +1,14 @@
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import { generateProductDescription } from "../src/lib/mistral-describe";
 import { isGopageCatalogDescription } from "./lib/gopage-parser";
+
+loadEnv({ path: ".env" });
+if (process.env.DOTENV_CONFIG_PATH) {
+  loadEnv({ path: process.env.DOTENV_CONFIG_PATH, override: true });
+}
 
 type Options = {
   dryRun: boolean;
@@ -41,7 +46,7 @@ function sleep(ms: number) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  const apiKey = process.env.MISTRAL_API_KEY;
+  const apiKey = process.env.MISTRAL_API_KEY?.trim();
 
   if (!apiKey) {
     throw new Error("MISTRAL_API_KEY não configurada.");
