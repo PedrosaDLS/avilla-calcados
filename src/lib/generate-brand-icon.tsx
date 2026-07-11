@@ -4,6 +4,9 @@ import { join } from "node:path";
 
 const FONT_DIR = join(process.cwd(), "public/fonts/itc-bauhaus");
 const FONT_CANDIDATES = [
+  "BauhausStd-Bold.ttf",
+  "BauhausStd-Bold.woff2",
+  "BauhausStd-Bold.woff",
   "BauhausStd-Heavy.ttf",
   "BauhausStd-Heavy.woff2",
   "BauhausStd-Heavy.woff",
@@ -32,26 +35,23 @@ async function loadBrandFontPath() {
 }
 
 function buildBrandIconSvg(size: number) {
-  const fontSize = Math.round(size * 0.26);
+  const fontSize = Math.round(size * 0.58);
   const radius = Math.round(size * 0.22);
   const center = size / 2;
-  const offsetX = Math.round(size * 0.02);
-  const offsetY = Math.round(-size * 0.032);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <rect width="${size}" height="${size}" rx="${radius}" fill="#FF0000" />
   <text
     x="${center}"
     y="${center}"
-    dx="${offsetX}"
-    dy="${offsetY}"
     fill="#000000"
-    font-family="Bauhaus Std Heavy, Bauhaus Std"
+    font-family="Bauhaus Std Bold, Bauhaus Std"
+    font-weight="700"
     font-size="${fontSize}"
     text-anchor="middle"
     dominant-baseline="central"
     text-rendering="geometricPrecision"
-  >ávilla</text>
+  >á</text>
 </svg>`;
 }
 
@@ -63,7 +63,7 @@ export async function renderBrandIconPng(size: number) {
     font: {
       fontFiles: [fontPath],
       loadSystemFonts: false,
-      defaultFontFamily: "Bauhaus Std",
+      defaultFontFamily: "Bauhaus Std Bold",
     },
   });
 

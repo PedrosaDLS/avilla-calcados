@@ -7,6 +7,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import {
   fetchAllGopageProducts,
+  extractGopageMaterial,
   GOPAGE_CATEGORIES,
   type GopageProduct,
 } from "./lib/gopage-parser";
@@ -191,6 +192,7 @@ async function importProduct(
   const data = {
     name: cleanProductName(product.name),
     description: product.description ?? "",
+    material: extractGopageMaterial(product.description),
     price: product.price,
     promoPrice: product.sale_price,
     isLaunch: product.highlight,

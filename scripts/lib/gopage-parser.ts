@@ -149,3 +149,23 @@ export async function fetchAllGopageProducts(
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+const MATERIAL_MAP: Record<string, string> = {
+  Couro: "Couro Legítimo",
+  Tecnológico: "Couro sintético",
+  Nobuck: "Nobuck",
+  Borracha: "Borracha",
+};
+
+export function extractGopageMaterial(description: string | null | undefined): string {
+  if (!description?.trim()) return "";
+
+  const match =
+    description.match(/Material[:\s]*<\/[^>]+>\s*([^<\n]+)/i) ??
+    description.match(/Material[:\s]+([^\n<]+)/i);
+
+  if (!match) return "";
+
+  const raw = match[1].replace(/<[^>]+>/g, "").trim();
+  return MATERIAL_MAP[raw] ?? raw;
+}
