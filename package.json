@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "tsx scripts/generate-favicons.ts && prisma generate && next build",
+    "generate:favicons": "tsx scripts/generate-favicons.ts",
+    "build": "prisma generate && next build",
     "start": "next start -p 3010",
     "lint": "eslint",
     "db:migrate": "prisma migrate deploy",
