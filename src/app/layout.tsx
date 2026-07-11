@@ -21,6 +21,14 @@ export const metadata: Metadata = {
   title: "Ávilla | Calçados Femininos",
   description: "Catálogo Ávilla — moda, qualidade e conforto.",
   applicationName: "Ávilla",
+  icons: {
+    icon: [
+      { url: "/icon", type: "image/png", sizes: "1024x1024" },
+    ],
+    apple: [
+      { url: "/apple-icon", type: "image/png", sizes: "1024x1024" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

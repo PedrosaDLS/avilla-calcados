@@ -55,7 +55,7 @@ function buildBrandIconSvg(size: number) {
 </svg>`;
 }
 
-export async function generateBrandIcon(size: number) {
+export async function renderBrandIconPng(size: number) {
   const fontPath = await loadBrandFontPath();
   const svg = buildBrandIconSvg(size);
   const resvg = new Resvg(svg, {
@@ -67,7 +67,11 @@ export async function generateBrandIcon(size: number) {
     },
   });
 
-  const png = resvg.render().asPng();
+  return Buffer.from(resvg.render().asPng());
+}
+
+export async function generateBrandIcon(size: number) {
+  const png = await renderBrandIconPng(size);
 
   return new Response(new Uint8Array(png), {
     headers: {

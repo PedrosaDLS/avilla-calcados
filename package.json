@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "tsx scripts/generate-favicons.ts && prisma generate && next build",
     "start": "next start -p 3010",
     "lint": "eslint",
     "db:migrate": "prisma migrate deploy",
@@ -47,6 +47,7 @@
     "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "png-to-ico": "^3.0.2",
     "prisma": "^7.8.0",
     "serwist": "^9.5.11",
     "tailwindcss": "^4",
