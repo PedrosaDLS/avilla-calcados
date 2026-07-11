@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ProductGrid, type ProductCardData } from "@/components/product/ProductGrid";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 
@@ -22,35 +22,36 @@ const fadeUp = {
 
 export function FeaturedSection({ products }: { products: ProductCardData[] }) {
   return (
-    <motion.div
+    <m.div
       variants={section}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-60px" }}
     >
-      <motion.h2
+      <m.h2
         variants={fadeUp}
         className="mb-8 font-[family-name:var(--font-display)] text-3xl md:text-4xl"
       >
         Modelos destaque
-      </motion.h2>
+      </m.h2>
 
-      <motion.div variants={fadeUp}>
+      <m.div variants={fadeUp}>
         <ProductGrid
           products={products}
           emptyMessage="Novos modelos em breve."
+          priorityCount={4}
           staggerBase={0.12}
           imageAspectClass="aspect-square"
         />
-      </motion.div>
+      </m.div>
 
       {products.length > 0 && (
-        <motion.div variants={fadeUp} className="mt-20 flex justify-center md:mt-24">
+        <m.div variants={fadeUp} className="mt-20 flex justify-center md:mt-24">
           <RoundedSlideButton href="/colecao" variant="sand">
             Ver mais
           </RoundedSlideButton>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   );
 }

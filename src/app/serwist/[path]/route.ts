@@ -9,4 +9,23 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
   additionalPrecacheEntries: [{ url: "/~offline", revision }],
   swSrc: "src/app/sw.ts",
   useNativeEsbuild: true,
+  maximumFileSizeToCacheInBytes: 512 * 1024,
+  globPatterns: [
+    ".next/static/chunks/**/*.js",
+    ".next/static/chunks/**/*.css",
+    ".next/static/media/**/*",
+  ],
+  globIgnores: [
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/graphify-out/**",
+    "**/.cursor/**",
+    "public/fonts/**",
+    "**/*.map",
+    "**/*.zip",
+    "**/*.eot",
+    "**/*.ttf",
+    "**/*.woff",
+    "**/*.{png,jpg,jpeg,gif,webp,svg,ico}",
+  ],
 });

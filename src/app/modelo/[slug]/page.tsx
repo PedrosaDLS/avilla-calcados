@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/lib/catalog";
 import { ProductDetailClient } from "@/components/product/ProductDetailClient";
 
+export const revalidate = 120;
+
 type Props = { params: Promise<{ slug: string }> };
 
 export default async function ModeloPage({ params }: Props) {

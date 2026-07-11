@@ -2,7 +2,7 @@ import { getHomePageData } from "@/lib/catalog";
 import { ShuffleHero } from "@/components/hero/ShuffleHero";
 import { FeaturedSection } from "@/components/home/FeaturedSection";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 export default async function HomePage() {
   const { heroProducts: hero, highlights } = await getHomePageData();

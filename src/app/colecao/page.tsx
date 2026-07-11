@@ -6,6 +6,8 @@ import { ProductFilters } from "@/components/filters/ProductFilters";
 import { ProductSearch } from "@/components/filters/ProductSearch";
 import { parseFilters } from "@/lib/products";
 
+export const revalidate = 60;
+
 const PAGE_SIZE = 20;
 
 type Props = {

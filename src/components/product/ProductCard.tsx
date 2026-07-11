@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { effectivePrice, formatBRL } from "@/lib/utils";
 
 export type ProductCardData = {
@@ -20,12 +20,14 @@ type Props = {
   product: ProductCardData;
   motionDelay?: number;
   imageAspectClass?: string;
+  priority?: boolean;
 };
 
 export function ProductCard({
   product,
   motionDelay = 0,
   imageAspectClass = "aspect-[4/5]",
+  priority = false,
 }: Props) {
   const reduceMotion = useReducedMotion();
   const price = effectivePrice(product.price, product.promoPrice);
@@ -34,7 +36,7 @@ export function ProductCard({
   const img = product.images[0]?.url;
 
   return (
-    <motion.article
+    <m.article
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{
@@ -55,6 +57,7 @@ export function ProductCard({
                 src={img}
                 alt={product.name}
                 fill
+                priority={priority}
                 className={`object-cover transition duration-500 ease-out ${
                   reduceMotion ? "" : "group-hover:scale-105"
                 }`}
@@ -88,6 +91,6 @@ export function ProductCard({
           </div>
         </div>
       </Link>
-    </motion.article>
+    </m.article>
   );
 }

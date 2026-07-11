@@ -1,13 +1,20 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
-import BlurText from "@/components/effects/BlurText";
-import LiquidEther from "@/components/effects/LiquidEther";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { pickRandomExcluding, pickRandomUnique } from "@/lib/shuffle";
+
+const LiquidEther = dynamic(() => import("@/components/effects/LiquidEther"), {
+  ssr: false,
+});
+
+const BlurText = dynamic(() => import("@/components/effects/BlurText"), {
+  ssr: false,
+});
 
 export type HeroProduct = {
   id: string;
@@ -19,7 +26,6 @@ export type HeroProduct = {
 const SLOT_COUNT = 4;
 const INTERVALS = [2800, 3400, 3100, 3900];
 
-/* Light: very soft cream ink. Dark: muted amber ink. */
 const LIGHT_ETHER = ["#fffefb", "#faf7f3", "#f3ede6"];
 const DARK_ETHER = ["#f5dcc4", "#e8c4a0", "#d4a574"];
 
@@ -34,6 +40,19 @@ function useIsDark() {
     return () => mo.disconnect();
   }, []);
   return dark;
+}
+
+function useDeferredMount(delayMs = 800) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (typeof requestIdleCallback === "function") {
+      const id = requestIdleCallback(() => setReady(true), { timeout: delayMs });
+      return () => cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(() => setReady(true), 100);
+    return () => window.clearTimeout(id);
+  }, [delayMs]);
+  return ready;
 }
 
 function buildInitialSlots(pool: HeroProduct[]): (HeroProduct | null)[] {
@@ -55,11 +74,13 @@ function ShuffleSquare({
   product,
   intervalMs,
   onTick,
+  priority = false,
   className = "",
 }: {
   product: HeroProduct | null;
   intervalMs: number;
   onTick: () => void;
+  priority?: boolean;
   className?: string;
 }) {
   const onTickRef = useRef(onTick);
@@ -81,7 +102,7 @@ function ShuffleSquare({
       className={`relative block h-full overflow-hidden bg-[var(--bg-elevated)] ${className}`}
     >
       <AnimatePresence mode="popLayout">
-        <motion.div
+        <m.div
           key={product.id}
           initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -94,6 +115,7 @@ function ShuffleSquare({
               src={product.imageUrl}
               alt={product.name}
               fill
+              priority={priority}
               className="object-cover"
               sizes="(max-width:768px) 45vw, 240px"
             />
@@ -102,7 +124,7 @@ function ShuffleSquare({
               {product.name}
             </div>
           )}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     </Link>
   );
@@ -111,9 +133,15 @@ function ShuffleSquare({
 export function ShuffleHero({ products }: { products: HeroProduct[] }) {
   const heroRef = useRef<HTMLElement>(null);
   const dark = useIsDark();
+  const etherReady = useDeferredMount();
+  const [etherResolution, setEtherResolution] = useState(0.4);
   const etherColors = dark ? DARK_ETHER : LIGHT_ETHER;
   const poolRef = useRef(products);
   poolRef.current = products;
+
+  useEffect(() => {
+    setEtherResolution(Math.min(0.5, 0.35 * (window.devicePixelRatio || 1)));
+  }, []);
 
   const [visibleBySlot, setVisibleBySlot] = useState<(HeroProduct | null)[]>(() =>
     buildInitialSlots(products)
@@ -154,27 +182,29 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[1] hidden h-full w-full md:block"
       >
-        <LiquidEther
-          key={dark ? "dark" : "light"}
-          boundsRef={heroRef}
-          colors={etherColors}
-          mouseForce={10}
-          cursorSize={72}
-          isViscous={false}
-          viscous={30}
-          iterationsViscous={32}
-          iterationsPoisson={32}
-          resolution={0.4}
-          isBounce={false}
-          autoDemo
-          autoSpeed={0.28}
-          autoIntensity={1.0}
-          takeoverDuration={0.25}
-          autoResumeDelay={3000}
-          autoRampDuration={0.6}
-          className="h-full w-full"
-          style={{ width: "100%", height: "100%" }}
-        />
+        {etherReady && (
+          <LiquidEther
+            key={dark ? "dark" : "light"}
+            boundsRef={heroRef}
+            colors={etherColors}
+            mouseForce={10}
+            cursorSize={72}
+            isViscous={false}
+            viscous={30}
+            iterationsViscous={24}
+            iterationsPoisson={24}
+            resolution={etherResolution}
+            isBounce={false}
+            autoDemo
+            autoSpeed={0.28}
+            autoIntensity={1.0}
+            takeoverDuration={0.25}
+            autoResumeDelay={3000}
+            autoRampDuration={0.6}
+            className="h-full w-full"
+            style={{ width: "100%", height: "100%" }}
+          />
+        )}
       </div>
 
       <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 px-4 pt-6 pb-12 md:min-h-[calc(100vh-5rem)] md:grid-cols-2 md:px-6 md:pt-8 md:pb-16">
@@ -225,6 +255,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
               product={product}
               intervalMs={INTERVALS[i]}
               onTick={slotTickHandlers.current[i]}
+              priority={i < 2}
             />
           ))}
           {!products.length &&

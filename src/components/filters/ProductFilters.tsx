@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition, type ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { FilterSection } from "@/components/filters/FilterSection";
 
 type Category = { id: string; name: string; slug: string };
@@ -209,14 +209,14 @@ export function ProductFilters({ categories, colors, sizes, priceRange }: Props)
 
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
+          <m.div
             className="fixed inset-0 z-[60] bg-black/40 md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileOpen(false)}
           >
-            <motion.div
+            <m.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -240,8 +240,8 @@ export function ProductFilters({ categories, colors, sizes, priceRange }: Props)
                 </button>
               </div>
               {body}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

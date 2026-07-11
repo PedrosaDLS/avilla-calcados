@@ -8,11 +8,13 @@ export function ProductGrid({
   products,
   emptyMessage = "Nenhum modelo encontrado com esses filtros.",
   staggerBase = 0.05,
+  priorityCount = 0,
   imageAspectClass = "aspect-[4/5]",
 }: {
   products: ProductCardData[];
   emptyMessage?: string;
   staggerBase?: number;
+  priorityCount?: number;
   imageAspectClass?: string;
 }) {
   if (!products.length) {
@@ -28,6 +30,7 @@ export function ProductGrid({
           key={p.id}
           product={p}
           motionDelay={(i % 4) * staggerBase}
+          priority={i < priorityCount}
           imageAspectClass={imageAspectClass}
         />
       ))}

@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
   getMockCollectionPageData,
@@ -15,11 +16,7 @@ import {
 const HIGHLIGHTS_LIMIT = 8;
 const HERO_LIMIT = 12;
 
-export async function getHomePageData() {
-  if (useMockData()) {
-    return getMockHomePageData();
-  }
-
+async function fetchHomePageData() {
   const [heroProducts, highlights] = await Promise.all([
     prisma.product.findMany({
       where: {
@@ -48,15 +45,22 @@ export async function getHomePageData() {
   };
 }
 
-export async function getCollectionPageData(
+export async function getHomePageData() {
+  if (useMockData()) {
+    return getMockHomePageData();
+  }
+
+  return unstable_cache(fetchHomePageData, ["home-page-data"], {
+    revalidate: 120,
+    tags: ["home-page", "products"],
+  })();
+}
+
+async function fetchCollectionPageData(
   filters: ProductFilters,
   page: number,
   pageSize: number
 ) {
-  if (useMockData()) {
-    return getMockCollectionPageData(filters, page, pageSize);
-  }
-
   const where = buildProductWhere(filters);
   const [total, products] = await Promise.all([
     prisma.product.count({ where }),
@@ -77,11 +81,30 @@ export async function getCollectionPageData(
   };
 }
 
-export async function getFilterOptions() {
+export async function getCollectionPageData(
+  filters: ProductFilters,
+  page: number,
+  pageSize: number
+) {
   if (useMockData()) {
-    return getMockFilterOptions();
+    return getMockCollectionPageData(filters, page, pageSize);
   }
 
+  const cacheKey = [
+    "collection",
+    JSON.stringify(filters),
+    String(page),
+    String(pageSize),
+  ];
+
+  return unstable_cache(
+    () => fetchCollectionPageData(filters, page, pageSize),
+    cacheKey,
+    { revalidate: 60, tags: ["products", "collection"] }
+  )();
+}
+
+async function fetchFilterOptions() {
   const [categories, colors, sizes, priceAgg] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.productColor.findMany({
@@ -111,18 +134,34 @@ export async function getFilterOptions() {
   };
 }
 
+export async function getFilterOptions() {
+  if (useMockData()) {
+    return getMockFilterOptions();
+  }
+
+  return unstable_cache(fetchFilterOptions, ["filter-options"], {
+    revalidate: 300,
+    tags: ["filter-options", "products"],
+  })();
+}
+
 export async function getProductBySlug(slug: string) {
   if (useMockData()) {
     return getMockProductBySlug(slug);
   }
 
-  return prisma.product.findUnique({
-    where: { slug },
-    include: {
-      category: true,
-      colors: true,
-      sizes: { orderBy: { size: "asc" } },
-      images: { orderBy: { sortOrder: "asc" } },
-    },
-  });
+  return unstable_cache(
+    () =>
+      prisma.product.findUnique({
+        where: { slug },
+        include: {
+          category: true,
+          colors: true,
+          sizes: { orderBy: { size: "asc" } },
+          images: { orderBy: { sortOrder: "asc" } },
+        },
+      }),
+    ["product", slug],
+    { revalidate: 120, tags: ["products", `product-${slug}`] }
+  )();
 }

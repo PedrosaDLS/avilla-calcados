@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -90,7 +90,7 @@ export function FlyoutNavbar() {
               </Link>
               <AnimatePresence>
                 {flyout === link.href && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
@@ -106,7 +106,7 @@ export function FlyoutNavbar() {
                     >
                       Ver {link.label.toLowerCase()}
                     </Link>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>
@@ -163,7 +163,7 @@ export function FlyoutNavbar() {
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -203,7 +203,7 @@ export function FlyoutNavbar() {
                 </Link>
               )}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

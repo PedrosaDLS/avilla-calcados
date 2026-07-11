@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { revalidateCatalog } from "@/lib/revalidate-catalog";
 import { slugify } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
@@ -42,6 +43,11 @@ export async function PUT(req: Request, { params }: Params) {
   const { id } = await params;
   const body = updateSchema.parse(await req.json());
 
+  const existing = await prisma.product.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+
   const data: Record<string, unknown> = {};
   if (body.name) {
     data.name = body.name;
@@ -75,6 +81,9 @@ export async function PUT(req: Request, { params }: Params) {
     where: { id },
     include: { images: true, category: true },
   });
+
+  revalidateCatalog(full?.slug ?? existing?.slug);
+
   return NextResponse.json(full);
 }
 
@@ -84,6 +93,15 @@ export async function DELETE(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   const { id } = await params;
+
+  const existing = await prisma.product.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+
   await prisma.product.delete({ where: { id } });
+
+  revalidateCatalog(existing?.slug);
+
   return NextResponse.json({ ok: true });
 }

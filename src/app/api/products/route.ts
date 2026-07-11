@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { revalidateCatalog } from "@/lib/revalidate-catalog";
 import { slugify } from "@/lib/utils";
 
 const productSchema = z.object({
@@ -72,6 +73,8 @@ export async function POST(req: Request) {
     where: { id: product.id },
     include: { images: true, category: true },
   });
+
+  revalidateCatalog(full?.slug);
 
   return NextResponse.json(full, { status: 201 });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ReactNode, useId, useState } from "react";
 
 type Props = {
@@ -32,7 +32,7 @@ export function FilterSection({ title, count = 0, defaultOpen = true, children }
               {count}
             </span>
           )}
-          <motion.span
+          <m.span
             animate={{ rotate: open ? 180 : 0 }}
             transition={{ duration: 0.2 }}
             className="text-[var(--muted)]"
@@ -47,13 +47,13 @@ export function FilterSection({ title, count = 0, defaultOpen = true, children }
                 strokeLinejoin="round"
               />
             </svg>
-          </motion.span>
+          </m.span>
         </span>
       </button>
 
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
+          <m.div
             id={panelId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -62,7 +62,7 @@ export function FilterSection({ title, count = 0, defaultOpen = true, children }
             className="overflow-hidden"
           >
             <div className="border-t border-[var(--line)] px-4 py-4">{children}</div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

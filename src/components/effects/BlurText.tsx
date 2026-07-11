@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useAnimationControls, type Variants } from "framer-motion";
+import { m, useAnimationControls, type Variants } from "framer-motion";
 import { useEffect, useMemo, type CSSProperties } from "react";
 
 type BlurTextProps = {
@@ -46,7 +46,7 @@ export default function BlurText({
   const child: Variants = {
     hidden: {
       opacity: 0,
-      filter: "blur(10px)",
+      filter: "blur(6px)",
       y: yFrom,
     },
     visible: {
@@ -61,7 +61,7 @@ export default function BlurText({
 
   return (
     <Tag className={className} style={style}>
-      <motion.span
+      <m.span
         className={isBlockTag ? "block w-full text-left" : "inline"}
         initial="hidden"
         animate={controls}
@@ -69,15 +69,15 @@ export default function BlurText({
         aria-label={text}
       >
         {units.map((unit, i) => (
-          <motion.span
+          <m.span
             key={`${unit}-${i}`}
             className={animateBy === "letters" ? "inline-block whitespace-pre" : "inline whitespace-pre"}
             variants={child}
           >
             {unit === " " ? "\u00A0" : unit}
-          </motion.span>
+          </m.span>
         ))}
-      </motion.span>
+      </m.span>
     </Tag>
   );
 }

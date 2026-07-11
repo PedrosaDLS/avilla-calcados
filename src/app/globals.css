@@ -3,9 +3,7 @@
 /* Logo brand — Heavy only (matches reference àvilla) */
 @font-face {
   font-family: "Bauhaus Std";
-  src: url("/fonts/itc-bauhaus/BauhausStd-Heavy.woff2") format("woff2"),
-    url("/fonts/itc-bauhaus/BauhausStd-Heavy.woff") format("woff"),
-    url("/fonts/itc-bauhaus/BauhausStd-Heavy.ttf") format("truetype");
+  src: url("/fonts/itc-bauhaus/BauhausStd-Heavy.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -13,9 +11,7 @@
 
 @font-face {
   font-family: "Bauhaus Std";
-  src: url("/fonts/itc-bauhaus/BauhausStd-Bold.woff2") format("woff2"),
-    url("/fonts/itc-bauhaus/BauhausStd-Bold.woff") format("woff"),
-    url("/fonts/itc-bauhaus/BauhausStd-Bold.ttf") format("truetype");
+  src: url("/fonts/itc-bauhaus/BauhausStd-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
