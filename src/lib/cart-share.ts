@@ -11,20 +11,19 @@ const sharePayloadSchema = z.array(shareItemSchema).min(1).max(20);
 export type CartShareItem = z.infer<typeof shareItemSchema>;
 
 function toBase64Url(value: string) {
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(value, "utf8").toString("base64url");
-  }
-  return btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 function fromBase64Url(encoded: string) {
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(encoded, "base64url").toString("utf8");
-  }
   const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
   const pad = base64.length % 4;
   const padded = pad ? base64 + "=".repeat(4 - pad) : base64;
-  return atob(padded);
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 export function encodeCartShare(
