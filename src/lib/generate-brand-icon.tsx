@@ -1,73 +1,69 @@
-import { Resvg } from "@resvg/resvg-js";
-import { access } from "node:fs/promises";
+import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const FONT_DIR = join(process.cwd(), "public/fonts/itc-bauhaus");
-const FONT_CANDIDATES = [
-  "BauhausStd-Bold.ttf",
-  "BauhausStd-Bold.woff2",
-  "BauhausStd-Bold.woff",
-  "BauhausStd-Heavy.ttf",
-  "BauhausStd-Heavy.woff2",
-  "BauhausStd-Heavy.woff",
-] as const;
+const FONT_PATH = join(process.cwd(), "public/fonts/itc-bauhaus/BauhausStd-Bold.ttf");
 
-let fontPathPromise: Promise<string> | null = null;
+let fontDataPromise: Promise<ArrayBuffer> | null = null;
 
-async function loadBrandFontPath() {
-  if (!fontPathPromise) {
-    fontPathPromise = (async () => {
-      for (const file of FONT_CANDIDATES) {
-        const path = join(FONT_DIR, file);
-        try {
-          await access(path);
-          return path;
-        } catch {
-          continue;
-        }
-      }
-
-      throw new Error("Bauhaus Std font file not found for brand icon generation.");
-    })();
+async function loadFontData() {
+  if (!fontDataPromise) {
+    fontDataPromise = readFile(FONT_PATH).then((file) =>
+      file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength)
+    );
   }
 
-  return fontPathPromise;
+  return fontDataPromise;
 }
 
-function buildBrandIconSvg(size: number) {
-  const fontSize = Math.round(size * 0.58);
+function brandIconMarkup(size: number) {
   const radius = Math.round(size * 0.22);
-  const center = size / 2;
+  const fontSize = Math.round(size * 0.58);
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" rx="${radius}" fill="#FF0000" />
-  <text
-    x="${center}"
-    y="${center}"
-    fill="#000000"
-    font-family="Bauhaus Std Bold, Bauhaus Std"
-    font-weight="700"
-    font-size="${fontSize}"
-    text-anchor="middle"
-    dominant-baseline="central"
-    text-rendering="geometricPrecision"
-  >á</text>
-</svg>`;
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FF0000",
+        borderRadius: radius,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "Bauhaus Std",
+          fontSize,
+          fontWeight: 700,
+          color: "#000000",
+          lineHeight: 1,
+        }}
+      >
+        á
+      </span>
+    </div>
+  );
 }
 
 export async function renderBrandIconPng(size: number) {
-  const fontPath = await loadBrandFontPath();
-  const svg = buildBrandIconSvg(size);
-  const resvg = new Resvg(svg, {
-    fitTo: { mode: "width", value: size },
-    font: {
-      fontFiles: [fontPath],
-      loadSystemFonts: false,
-      defaultFontFamily: "Bauhaus Std Bold",
-    },
+  const fontData = await loadFontData();
+
+  const response = new ImageResponse(brandIconMarkup(size), {
+    width: size,
+    height: size,
+    fonts: [
+      {
+        name: "Bauhaus Std",
+        data: fontData,
+        style: "normal",
+        weight: 700,
+      },
+    ],
   });
 
-  return Buffer.from(resvg.render().asPng());
+  return Buffer.from(await response.arrayBuffer());
 }
 
 export async function generateBrandIcon(size: number) {

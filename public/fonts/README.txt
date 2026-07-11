@@ -1,1 +1,1 @@
-﻿# Bauhaus ITC: place BauhausITC.ttf here for brand logo
+﻿# Bauhaus ITC (web: BauhausStd-Bold.woff2 / Heavy.woff2; ícones: BauhausStd-Bold.ttf)
