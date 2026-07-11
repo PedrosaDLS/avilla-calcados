@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   buildWhatsAppUrl,
   messageForCart,
@@ -21,10 +22,16 @@ export function WhatsAppButton({
   className?: string;
   label?: string;
 }) {
+  const [origin, setOrigin] = useState(process.env.NEXT_PUBLIC_SITE_URL ?? "");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
   const text = items
-    ? messageForCart(items, total)
+    ? messageForCart(items, total, origin)
     : item
-      ? messageForProduct(item)
+      ? messageForProduct(item, origin)
       : "";
   const href = buildWhatsAppUrl(text);
 

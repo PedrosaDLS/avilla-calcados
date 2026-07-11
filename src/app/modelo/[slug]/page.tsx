@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/lib/catalog";
 import { ProductDetailClient } from "@/components/product/ProductDetailClient";
@@ -10,12 +11,14 @@ export default async function ModeloPage({ params }: Props) {
   if (!product) notFound();
 
   return (
-    <ProductDetailClient
-      product={{
-        ...product,
-        price: Number(product.price),
-        promoPrice: product.promoPrice != null ? Number(product.promoPrice) : null,
-      }}
-    />
+    <Suspense fallback={null}>
+      <ProductDetailClient
+        product={{
+          ...product,
+          price: Number(product.price),
+          promoPrice: product.promoPrice != null ? Number(product.promoPrice) : null,
+        }}
+      />
+    </Suspense>
   );
 }

@@ -108,6 +108,7 @@ export function CartClient({
         <WhatsAppButton
           items={items.map((i) => ({
             name: i.name,
+            slug: i.slug,
             color: i.colorName,
             size: i.sizeLabel,
             qty: i.qty,

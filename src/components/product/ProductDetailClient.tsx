@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
@@ -59,6 +59,7 @@ function GalleryArrow({
 
 export function ProductDetailClient({ product }: { product: ProductDetail }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [colorId, setColorId] = useState(product.colors[0]?.id ?? "");
   const availableSizes = product.sizes.filter((s) => s.colorId === colorId);
   const [sizeId, setSizeId] = useState(availableSizes[0]?.id ?? "");
@@ -88,6 +89,25 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
       nextSizes.some((s) => s.id === current) ? current : (nextSizes[0]?.id ?? "")
     );
   }, [colorId, product.sizes]);
+
+  useEffect(() => {
+    const cor = searchParams.get("cor");
+    if (!cor) return;
+    const match = product.colors.find(
+      (c) => c.name.localeCompare(cor, "pt-BR", { sensitivity: "accent" }) === 0
+    );
+    if (match) setColorId(match.id);
+  }, [searchParams, product.colors]);
+
+  useEffect(() => {
+    const tamanho = searchParams.get("tamanho");
+    if (!tamanho) return;
+    const nextSizes = product.sizes.filter((s) => s.colorId === colorId);
+    const match = nextSizes.find(
+      (s) => s.size.localeCompare(tamanho, "pt-BR", { sensitivity: "accent" }) === 0
+    );
+    if (match) setSizeId(match.id);
+  }, [searchParams, colorId, product.sizes]);
 
   const activeImg = gallery[activeIndex]?.url ?? null;
   const hasMultiple = gallery.length > 1;
@@ -283,6 +303,7 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
           <WhatsAppButton
             item={{
               name: product.name,
+              slug: product.slug,
               color: colorName,
               size: sizeLabel,
               qty,
