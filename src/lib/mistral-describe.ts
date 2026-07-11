@@ -32,33 +32,52 @@ export async function generateProductDescription(
     { type: "image_url", image_url: publicImageUrl },
   ];
 
-  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "pixtral-12b-2409",
-      messages: [{ role: "user", content }],
-      max_tokens: 120,
-      temperature: 0.4,
-    }),
-  });
+  let lastError: Error | null = null;
 
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-    error?: { message?: string };
-  };
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "pixtral-12b-2409",
+          messages: [{ role: "user", content }],
+          max_tokens: 120,
+          temperature: 0.4,
+        }),
+      });
 
-  if (!res.ok) {
-    throw new Error(data.error?.message || "Falha ao contactar Mistral.");
+      const data = (await res.json()) as {
+        choices?: { message?: { content?: string } }[];
+        error?: { message?: string };
+      };
+
+      if (!res.ok) {
+        const message = data.error?.message || "Falha ao contactar Mistral.";
+        if (res.status === 429 && attempt < 4) {
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
+          continue;
+        }
+        throw new Error(message);
+      }
+
+      const description = data.choices?.[0]?.message?.content?.trim();
+      if (!description) {
+        throw new Error("A IA não retornou descrição.");
+      }
+
+      return normalizeMarkdown(description);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt < 4) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+        continue;
+      }
+    }
   }
 
-  const description = data.choices?.[0]?.message?.content?.trim();
-  if (!description) {
-    throw new Error("A IA não retornou descrição.");
-  }
-
-  return normalizeMarkdown(description);
+  throw lastError ?? new Error("Falha ao contactar Mistral.");
 }
