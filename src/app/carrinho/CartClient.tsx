@@ -23,9 +23,11 @@ type CartItemView = {
 export function CartClient({
   items,
   total,
+  error,
 }: {
   items: CartItemView[];
   total: number;
+  error?: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -42,6 +44,18 @@ export function CartClient({
     } finally {
       setBusy(null);
     }
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center md:px-6">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl">Carrinho</h1>
+        <p className="mt-4 text-[var(--muted)]">{error}</p>
+        <div className="mt-8 flex justify-center">
+          <RoundedSlideButton href="/colecao">Ver coleção</RoundedSlideButton>
+        </div>
+      </div>
+    );
   }
 
   if (!items.length) {
@@ -64,7 +78,14 @@ export function CartClient({
           <li key={item.id} className="flex gap-4 py-5">
             <div className="relative h-24 w-20 shrink-0 overflow-hidden bg-[var(--sand)]">
               {item.imageUrl && (
-                <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="80px" />
+                <Image
+                  src={item.imageUrl}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                  unoptimized={item.imageUrl.startsWith("/uploads/")}
+                />
               )}
             </div>
             <div className="min-w-0 flex-1">

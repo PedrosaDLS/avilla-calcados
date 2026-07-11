@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { GUEST_CART_COOKIE, getOrCreateUserCart, type GuestCartItem } from "@/lib/cart";
+import { GUEST_CART_COOKIE, getOrCreateUserCart, parseGuestCartValue, type GuestCartItem } from "@/lib/cart";
 
 const itemSchema = z.object({
   productId: z.string().min(1),
@@ -10,16 +10,11 @@ const itemSchema = z.object({
 });
 
 function parseGuest(cookie?: string): GuestCartItem[] {
-  if (!cookie) return [];
-  try {
-    return JSON.parse(decodeURIComponent(cookie)) as GuestCartItem[];
-  } catch {
-    return [];
-  }
+  return parseGuestCartValue(cookie);
 }
 
 function setGuestCookie(res: NextResponse, items: GuestCartItem[]) {
-  res.cookies.set(GUEST_CART_COOKIE, encodeURIComponent(JSON.stringify(items)), {
+  res.cookies.set(GUEST_CART_COOKIE, JSON.stringify(items), {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
@@ -41,52 +36,59 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const body = itemSchema.parse(await req.json());
-  const product = await prisma.product.findUnique({
-    where: { id: body.productId },
-  });
-  if (!product) return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
-
-  const session = await auth();
-  if (session?.user?.id) {
-    const cart = await getOrCreateUserCart(session.user.id);
-    const existing = await prisma.cartItem.findFirst({
-      where: {
-        cartId: cart.id,
-        productId: body.productId,
-        colorId: null,
-        sizeId: null,
-      },
+  try {
+    const body = itemSchema.parse(await req.json());
+    const product = await prisma.product.findUnique({
+      where: { id: body.productId },
     });
-    if (existing) {
-      await prisma.cartItem.update({
-        where: { id: existing.id },
-        data: { qty: existing.qty + body.qty },
-      });
-    } else {
-      await prisma.cartItem.create({
-        data: {
+    if (!product) return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+
+    const session = await auth();
+    if (session?.user?.id) {
+      const cart = await getOrCreateUserCart(session.user.id);
+      const existing = await prisma.cartItem.findFirst({
+        where: {
           cartId: cart.id,
           productId: body.productId,
-          qty: body.qty,
+          colorId: null,
+          sizeId: null,
         },
       });
+      if (existing) {
+        await prisma.cartItem.update({
+          where: { id: existing.id },
+          data: { qty: existing.qty + body.qty },
+        });
+      } else {
+        await prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            productId: body.productId,
+            qty: body.qty,
+          },
+        });
+      }
+      return NextResponse.json({ ok: true });
     }
-    return NextResponse.json({ ok: true });
-  }
 
-  const cookie = req.headers.get("cookie")?.match(/avilla_cart=([^;]+)/)?.[1];
-  const items = parseGuest(cookie);
-  const idx = items.findIndex((i) => i.productId === body.productId);
-  if (idx >= 0) items[idx].qty += body.qty;
-  else
-    items.push({
-      productId: body.productId,
-      qty: body.qty,
-    });
-  const res = NextResponse.json({ ok: true });
-  setGuestCookie(res, items);
-  return res;
+    const cookie = req.headers.get("cookie")?.match(/avilla_cart=([^;]+)/)?.[1];
+    const items = parseGuest(cookie);
+    const idx = items.findIndex((i) => i.productId === body.productId);
+    if (idx >= 0) items[idx].qty += body.qty;
+    else
+      items.push({
+        productId: body.productId,
+        qty: body.qty,
+      });
+    const res = NextResponse.json({ ok: true });
+    setGuestCookie(res, items);
+    return res;
+  } catch {
+    return NextResponse.json(
+      { error: "Não foi possível atualizar o carrinho. Tente novamente." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(req: Request) {
