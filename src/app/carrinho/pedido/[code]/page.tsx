@@ -1,14 +1,14 @@
-import { decodeCartShare } from "@/lib/cart-share";
-import { PedidoClient } from "./PedidoClient";
-import { resolvePedidoItems } from "./resolve-pedido";
+import { getSharedOrderItems } from "@/lib/cart-share-server";
+import { PedidoClient } from "../PedidoClient";
+import { resolvePedidoItems } from "../resolve-pedido";
 
 type Props = {
-  searchParams: Promise<{ d?: string }>;
+  params: Promise<{ code: string }>;
 };
 
-export default async function PedidoPage({ searchParams }: Props) {
-  const { d } = await searchParams;
-  const shared = d ? decodeCartShare(d) : null;
+export default async function PedidoByCodePage({ params }: Props) {
+  const { code } = await params;
+  const shared = await getSharedOrderItems(code);
 
   if (!shared?.length) {
     return (

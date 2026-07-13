@@ -103,3 +103,11 @@ model CartItem {
 
   @@unique([cartId, productId, colorId, sizeId])
 }
+
+model SharedOrder {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  items     Json
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}

@@ -10,7 +10,7 @@ export type WhatsAppItem = {
   qty: number;
 };
 
-const ORDER_OPENING = "Ola, Gostaria de fazer o seguinte pedido:";
+export const ORDER_OPENING = "Ola, Gostaria de fazer o seguinte pedido:";
 
 export function buildWhatsAppUrl(text: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
@@ -30,7 +30,12 @@ export function messageForProduct(item: WhatsAppItem, origin = "") {
   return `${ORDER_OPENING} ${link}`;
 }
 
-export function messageForCart(items: WhatsAppItem[], origin = "") {
+export function messageForCart(
+  items: WhatsAppItem[],
+  origin = "",
+  shareUrl?: string
+) {
+  if (shareUrl) return `${ORDER_OPENING} ${shareUrl}`;
   if (!origin || !items.length) return ORDER_OPENING;
   const link = buildCartShareUrl(origin, items);
   return `${ORDER_OPENING} ${link}`;

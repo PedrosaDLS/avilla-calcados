@@ -6,7 +6,7 @@ const shareItemSchema = z.object({
   qty: z.number().int().min(1).max(20),
 });
 
-const sharePayloadSchema = z.array(shareItemSchema).min(1).max(20);
+export const sharePayloadSchema = z.array(shareItemSchema).min(1).max(20);
 
 export type CartShareItem = z.infer<typeof shareItemSchema>;
 
@@ -26,6 +26,24 @@ function fromBase64Url(encoded: string) {
   return new TextDecoder().decode(bytes);
 }
 
+export function normalizeShareItems(
+  items: {
+    slug?: string;
+    material?: string | null;
+    qty: number;
+  }[]
+): CartShareItem[] {
+  return sharePayloadSchema.parse(
+    items
+      .filter((item) => item.slug)
+      .map((item) => ({
+        slug: item.slug!,
+        material: item.material ?? undefined,
+        qty: item.qty,
+      }))
+  );
+}
+
 export function encodeCartShare(
   items: {
     slug?: string;
@@ -33,14 +51,7 @@ export function encodeCartShare(
     qty: number;
   }[]
 ) {
-  const payload = items
-    .filter((item) => item.slug)
-    .map((item) => ({
-      slug: item.slug!,
-      material: item.material ?? undefined,
-      qty: item.qty,
-    }));
-  return toBase64Url(JSON.stringify(payload));
+  return toBase64Url(JSON.stringify(normalizeShareItems(items)));
 }
 
 export function decodeCartShare(encoded: string): CartShareItem[] | null {
@@ -54,23 +65,30 @@ export function decodeCartShare(encoded: string): CartShareItem[] | null {
 }
 
 export function buildCartSharePath(
-  items: {
-    slug?: string;
-    material?: string | null;
-    qty: number;
-  }[]
+  itemsOrCode:
+    | string
+    | {
+        slug?: string;
+        material?: string | null;
+        qty: number;
+      }[]
 ) {
-  const encoded = encodeCartShare(items);
+  if (typeof itemsOrCode === "string") {
+    return `/carrinho/pedido/${itemsOrCode}`;
+  }
+  const encoded = encodeCartShare(itemsOrCode);
   return `/carrinho/pedido?d=${encodeURIComponent(encoded)}`;
 }
 
 export function buildCartShareUrl(
   origin: string,
-  items: {
-    slug?: string;
-    material?: string | null;
-    qty: number;
-  }[]
+  itemsOrCode:
+    | string
+    | {
+        slug?: string;
+        material?: string | null;
+        qty: number;
+      }[]
 ) {
-  return `${origin}${buildCartSharePath(items)}`;
+  return `${origin}${buildCartSharePath(itemsOrCode)}`;
 }
