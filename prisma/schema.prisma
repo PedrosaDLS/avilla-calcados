@@ -37,6 +37,7 @@ model Product {
   price       Decimal        @db.Decimal(10, 2)
   promoPrice  Decimal?       @db.Decimal(10, 2)
   isLaunch    Boolean        @default(false)
+  isHidden    Boolean        @default(false)
   viewCount   Int            @default(0)
   categoryId  String
   category    Category       @relation(fields: [categoryId], references: [id])

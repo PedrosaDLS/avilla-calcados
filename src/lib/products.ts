@@ -35,7 +35,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
 }
 
 export function buildProductWhere(filters: ProductFilters): Prisma.ProductWhereInput {
-  const where: Prisma.ProductWhereInput = {};
+  const where: Prisma.ProductWhereInput = { isHidden: false };
   const and: Prisma.ProductWhereInput[] = [];
 
   if (filters.minPrice != null || filters.maxPrice != null) {

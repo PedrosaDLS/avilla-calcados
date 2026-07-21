@@ -41,7 +41,9 @@ export async function POST(req: Request) {
     const product = await prisma.product.findUnique({
       where: { id: body.productId },
     });
-    if (!product) return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+    if (!product || product.isHidden) {
+      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+    }
 
     const session = await auth();
     if (session?.user?.id) {

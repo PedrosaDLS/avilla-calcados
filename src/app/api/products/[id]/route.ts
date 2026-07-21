@@ -87,6 +87,33 @@ export async function PUT(req: Request, { params }: Params) {
   return NextResponse.json(full);
 }
 
+export async function PATCH(req: Request, { params }: Params) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+  const { id } = await params;
+  const body = z.object({ isHidden: z.boolean() }).parse(await req.json());
+
+  const existing = await prisma.product.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
+  }
+
+  const full = await prisma.product.update({
+    where: { id },
+    data: { isHidden: body.isHidden },
+    include: { images: true, category: true },
+  });
+
+  revalidateCatalog(existing.slug);
+
+  return NextResponse.json(full);
+}
+
 export async function DELETE(_req: Request, { params }: Params) {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") {

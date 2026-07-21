@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import { DeleteProductButton } from "./DeleteProductButton";
+import { HideProductButton } from "./HideProductButton";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { AdminModelosToolbar } from "./AdminModelosToolbar";
 
@@ -49,7 +50,9 @@ export default async function AdminModelosPage({ searchParams }: Props) {
         {products.map((p) => (
           <li
             key={p.id}
-            className="flex items-center gap-3 border border-[var(--line)] p-3"
+            className={`flex items-center gap-3 border border-[var(--line)] p-3 ${
+              p.isHidden ? "opacity-60" : ""
+            }`}
           >
             <div className="relative h-16 w-12 shrink-0 overflow-hidden bg-[var(--sand)]">
               {p.images[0] && (
@@ -57,15 +60,26 @@ export default async function AdminModelosPage({ searchParams }: Props) {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">{p.name}</p>
+              <p className="truncate font-medium">
+                {p.name}
+                {p.isHidden ? (
+                  <span className="ml-2 text-xs font-normal text-[var(--muted)]">
+                    oculto
+                  </span>
+                ) : null}
+              </p>
               <p className="text-sm text-[var(--muted)]">
-                {p.category.name} · {formatBRL(effectivePrice(p.price, p.promoPrice))} · {p.viewCount} views
+                {p.category.name} · {formatBRL(effectivePrice(p.price, p.promoPrice))} ·{" "}
+                {p.viewCount} views
               </p>
             </div>
-            <Link href={`/admin/modelos/${p.id}`} className="text-sm underline">
-              Editar
-            </Link>
-            <DeleteProductButton id={p.id} />
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <Link href={`/admin/modelos/${p.id}`} className="text-sm underline">
+                Editar
+              </Link>
+              <HideProductButton id={p.id} isHidden={p.isHidden} />
+              <DeleteProductButton id={p.id} />
+            </div>
           </li>
         ))}
         {!products.length && (

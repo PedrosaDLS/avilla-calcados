@@ -20,6 +20,7 @@ async function fetchHomePageData() {
   const [heroProducts, highlights] = await Promise.all([
     prisma.product.findMany({
       where: {
+        isHidden: false,
         images: { some: {} },
         OR: [{ isLaunch: true }, { viewCount: { gt: 0 } }],
       },
@@ -28,6 +29,7 @@ async function fetchHomePageData() {
       take: HERO_LIMIT,
     }),
     prisma.product.findMany({
+      where: { isHidden: false },
       include: productCardInclude,
       orderBy: { viewCount: "desc" },
       take: HIGHLIGHTS_LIMIT,
@@ -108,16 +110,19 @@ async function fetchFilterOptions() {
   const [categories, colors, sizes, priceAgg] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.productColor.findMany({
+      where: { product: { isHidden: false } },
       distinct: ["name"],
       select: { name: true, hex: true },
       orderBy: { name: "asc" },
     }),
     prisma.productSize.findMany({
+      where: { product: { isHidden: false } },
       distinct: ["size"],
       select: { size: true },
       orderBy: { size: "asc" },
     }),
     prisma.product.aggregate({
+      where: { isHidden: false },
       _min: { price: true },
       _max: { price: true },
     }),
@@ -152,8 +157,8 @@ export async function getProductBySlug(slug: string) {
 
   return unstable_cache(
     () =>
-      prisma.product.findUnique({
-        where: { slug },
+      prisma.product.findFirst({
+        where: { slug, isHidden: false },
         include: {
           category: true,
           colors: true,
