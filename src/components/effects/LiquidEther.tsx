@@ -45,6 +45,10 @@ export interface LiquidEtherProps {
   autoResumeDelay?: number;
   autoRampDuration?: number;
   boundsRef?: React.RefObject<HTMLElement | null>;
+  /** When set, effect disables itself if sustained FPS stays below this value. */
+  minFps?: number;
+  /** Fired once when FPS gate fails (after warmup + sample window). */
+  onLowFps?: () => void;
 }
 
 interface SimOptions {
@@ -78,6 +82,13 @@ interface LiquidEtherWebGL {
 
 const defaultColors = ['#5227FF', '#FF9FFC', '#B497CF'];
 
+/** Ignore first frames (shader compile / layout settle). */
+const FPS_WARMUP_MS = 600;
+/** Rolling window size after warmup. */
+const FPS_SAMPLE_WINDOW = 45;
+/** Ignore single-frame spikes above this (tab switch, GC). */
+const FPS_MAX_FRAME_MS = 100;
+
 export default function LiquidEther({
   mouseForce = 20,
   cursorSize = 100,
@@ -98,7 +109,9 @@ export default function LiquidEther({
   takeoverDuration = 0.25,
   autoResumeDelay = 1000,
   autoRampDuration = 0.6,
-  boundsRef
+  boundsRef,
+  minFps,
+  onLowFps
 }: LiquidEtherProps): React.ReactElement {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const webglRef = useRef<LiquidEtherWebGL | null>(null);
@@ -107,9 +120,13 @@ export default function LiquidEther({
   const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
   const isVisibleRef = useRef<boolean>(true);
   const resizeRafRef = useRef<number | null>(null);
+  const onLowFpsRef = useRef(onLowFps);
+  onLowFpsRef.current = onLowFps;
+  const fpsFailedRef = useRef(false);
 
   useEffect(() => {
     if (!mountRef.current) return;
+    fpsFailedRef.current = false;
 
     function makePaletteTexture(stops: string[]): DataTexture {
       let arr: string[];
@@ -1051,6 +1068,9 @@ export default function LiquidEther({
       private _loop = this.loop.bind(this);
       private _resize = this.resize.bind(this);
       private _onVisibility?: () => void;
+      private fpsLastFrame = 0;
+      private fpsWarmupStart = 0;
+      private fpsSamples: number[] = [];
       constructor(props: any) {
         this.props = props;
         Common.init(props.$wrapper);
@@ -1073,7 +1093,7 @@ export default function LiquidEther({
           const hidden = document.hidden;
           if (hidden) {
             this.pause();
-          } else if (isVisibleRef.current) {
+          } else if (isVisibleRef.current && !fpsFailedRef.current) {
             this.start();
           }
         };
@@ -1094,14 +1114,47 @@ export default function LiquidEther({
         Common.update();
         this.output.update();
       }
+      private checkFps(now: number): boolean {
+        const threshold = minFps;
+        if (threshold == null || threshold <= 0 || fpsFailedRef.current) return true;
+
+        if (!this.fpsWarmupStart) {
+          this.fpsWarmupStart = now;
+          this.fpsLastFrame = now;
+          return true;
+        }
+
+        const dt = now - this.fpsLastFrame;
+        this.fpsLastFrame = now;
+
+        if (now - this.fpsWarmupStart < FPS_WARMUP_MS) return true;
+        if (dt <= 0 || dt > FPS_MAX_FRAME_MS) return true;
+
+        this.fpsSamples.push(dt);
+        if (this.fpsSamples.length > FPS_SAMPLE_WINDOW) this.fpsSamples.shift();
+        if (this.fpsSamples.length < FPS_SAMPLE_WINDOW) return true;
+
+        let sum = 0;
+        for (let i = 0; i < this.fpsSamples.length; i++) sum += this.fpsSamples[i];
+        const avgFps = 1000 / (sum / this.fpsSamples.length);
+        if (avgFps >= threshold) return true;
+
+        fpsFailedRef.current = true;
+        this.pause();
+        onLowFpsRef.current?.();
+        return false;
+      }
       loop() {
         if (!this.running) return;
+        const now = performance.now();
+        if (!this.checkFps(now)) return;
         this.render();
         rafRef.current = requestAnimationFrame(this._loop);
       }
       start() {
-        if (this.running) return;
+        if (this.running || fpsFailedRef.current) return;
         this.running = true;
+        this.fpsLastFrame = performance.now();
         this._loop();
       }
       pause() {
@@ -1171,7 +1224,7 @@ export default function LiquidEther({
         const entry = entries[0];
         const isVisible = entry.isIntersecting && entry.intersectionRatio > 0;
         isVisibleRef.current = isVisible;
-        if (!webglRef.current) return;
+        if (!webglRef.current || fpsFailedRef.current) return;
         if (isVisible && !document.hidden) {
           webglRef.current.start();
         } else {
@@ -1232,7 +1285,8 @@ export default function LiquidEther({
     autoIntensity,
     takeoverDuration,
     autoResumeDelay,
-    autoRampDuration
+    autoRampDuration,
+    minFps
   ]);
 
   useEffect(() => {

@@ -134,6 +134,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
   const heroRef = useRef<HTMLElement>(null);
   const dark = useIsDark();
   const etherReady = useDeferredMount();
+  const [etherEnabled, setEtherEnabled] = useState(true);
   const [etherResolution, setEtherResolution] = useState(0.4);
   const etherColors = dark ? DARK_ETHER : LIGHT_ETHER;
   const poolRef = useRef(products);
@@ -182,7 +183,7 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[1] hidden h-full w-full md:block"
       >
-        {etherReady && (
+        {etherReady && etherEnabled && (
           <LiquidEther
             key={dark ? "dark" : "light"}
             boundsRef={heroRef}
@@ -201,6 +202,8 @@ export function ShuffleHero({ products }: { products: HeroProduct[] }) {
             takeoverDuration={0.25}
             autoResumeDelay={3000}
             autoRampDuration={0.6}
+            minFps={40}
+            onLowFps={() => setEtherEnabled(false)}
             className="h-full w-full"
             style={{ width: "100%", height: "100%" }}
           />
