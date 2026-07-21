@@ -5,6 +5,9 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 
 type SortKey = "recent" | "views";
 
+const controlClass =
+  "h-11 w-full border border-[var(--line)] bg-[var(--bg)] px-3 text-sm text-[var(--ink)] outline-none transition-[border-color] duration-150 placeholder:text-[var(--muted)] focus-visible:border-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
+
 export function AdminModelosToolbar({
   initialQuery = "",
   initialSort = "recent",
@@ -58,7 +61,10 @@ export function AdminModelosToolbar({
   };
 
   return (
-    <div className={`mb-6 flex flex-col gap-3 sm:flex-row sm:items-center ${pending ? "opacity-70" : ""}`}>
+    <div
+      className={`mb-6 flex flex-col gap-3 sm:flex-row sm:items-center ${pending ? "opacity-70" : ""}`}
+      aria-busy={pending}
+    >
       <div className="relative min-w-0 flex-1">
         <label htmlFor="admin-modelos-search" className="sr-only">
           Pesquisar modelos
@@ -68,14 +74,14 @@ export function AdminModelosToolbar({
           type="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Pesquisar modelos..."
-          className="w-full border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--ink)]"
+          placeholder="Pesquisar por nome ou categoria…"
+          className={`${controlClass} pr-11`}
         />
         {value ? (
           <button
             type="button"
             onClick={clear}
-            className="absolute inset-y-0 right-2 px-1 text-xs text-[var(--muted)] hover:text-[var(--ink)]"
+            className="absolute inset-y-0 right-0 inline-flex min-h-11 min-w-11 items-center justify-center text-sm text-[var(--muted)] transition hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             aria-label="Limpar pesquisa"
           >
             ✕
@@ -83,12 +89,13 @@ export function AdminModelosToolbar({
         ) : null}
       </div>
 
-      <label className="flex shrink-0 items-center gap-2 text-sm text-[var(--muted)]">
+      <label className="flex w-full shrink-0 flex-col gap-1.5 text-sm text-[var(--muted)] sm:w-auto sm:flex-row sm:items-center sm:gap-2">
         <span className="whitespace-nowrap">Ordenar</span>
         <select
           value={sort}
           onChange={(e) => onSortChange(e.target.value as SortKey)}
-          className="border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+          className={`${controlClass} sm:w-52`}
+          aria-label="Ordenar modelos"
         >
           <option value="recent">Último adicionado</option>
           <option value="views">Mais vistos</option>

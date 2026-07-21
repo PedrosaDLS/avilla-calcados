@@ -17,16 +17,29 @@ function TrashIcon() {
   );
 }
 
-export function DeleteProductButton({ id }: { id: string }) {
+export function DeleteProductButton({
+  id,
+  name,
+}: {
+  id: string;
+  name?: string;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function onDelete() {
-    if (!confirm("Excluir este modelo?")) return;
+    const label = name ? `“${name}”` : "este modelo";
+    if (!confirm(`Excluir ${label}? Esta ação não pode ser desfeita.`)) return;
     setBusy(true);
-    await fetch(`/api/products/${id}`, { method: "DELETE" });
-    setBusy(false);
-    router.refresh();
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("delete failed");
+      router.refresh();
+    } catch {
+      alert("Não foi possível excluir o modelo. Tente de novo.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -34,9 +47,10 @@ export function DeleteProductButton({ id }: { id: string }) {
       type="button"
       disabled={busy}
       onClick={onDelete}
-      aria-label="Excluir"
+      aria-label={name ? `Excluir ${name}` : "Excluir modelo"}
       title="Excluir"
-      className="inline-flex h-9 w-9 items-center justify-center text-red-600 transition hover:bg-red-600/10 disabled:opacity-50"
+      aria-busy={busy}
+      className="inline-flex min-h-11 min-w-11 items-center justify-center text-red-700 transition hover:bg-red-700/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-400/10 dark:focus-visible:outline-red-400"
     >
       <TrashIcon />
     </button>
