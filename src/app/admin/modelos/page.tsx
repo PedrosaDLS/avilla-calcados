@@ -1,11 +1,12 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import { DeleteProductButton } from "./DeleteProductButton";
 import { HideProductButton } from "./HideProductButton";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { CopyCategoryLinkBox } from "./CopyCategoryLinkBox";
+import { AdminProductThumb } from "./AdminProductThumb";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { AdminModelosToolbar } from "./AdminModelosToolbar";
 
@@ -68,22 +69,7 @@ export default async function AdminModelosPage({ searchParams }: Props) {
         <AdminModelosToolbar key={`${q}-${sort}`} initialQuery={q} initialSort={sort} />
       </Suspense>
 
-      {categories.length ? (
-        <div className="mb-6">
-          <p className="mb-2 text-sm text-[var(--muted)]">Copiar link da coleção por categoria</p>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((c) => (
-              <CopyLinkButton
-                key={c.id}
-                variant="chip"
-                label={c.name}
-                path={`/colecao?categoria=${encodeURIComponent(c.slug)}`}
-                title={`Copiar link da coleção filtrada por ${c.name}`}
-              />
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <CopyCategoryLinkBox categories={categories} />
 
       {products.length ? (
         <ul className="space-y-2">
@@ -96,17 +82,7 @@ export default async function AdminModelosPage({ searchParams }: Props) {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
-                  <div className="relative h-16 w-12 shrink-0 overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]">
-                    {p.images[0] ? (
-                      <Image
-                        src={p.images[0].url}
-                        alt={p.name}
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                      />
-                    ) : null}
-                  </div>
+                  <AdminProductThumb src={p.images[0]?.url} alt={p.name} />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <p className="truncate font-medium text-[var(--ink)]">{p.name}</p>
