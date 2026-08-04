@@ -33,6 +33,9 @@ export function AdminModelosToolbar({
       if (nextSort === "views") params.set("sort", "views");
       else params.delete("sort");
 
+      // Search/sort always returns to first page.
+      params.delete("page");
+
       startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
       });
