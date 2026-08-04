@@ -11,7 +11,7 @@ import { MaterialStep } from "./product-form/MaterialStep";
 import { ReviewStep } from "./product-form/ReviewStep";
 import { SuccessScreen } from "./product-form/SuccessScreen";
 import type { Category, ImageEntry, ProductFormInitial, ProductFormState } from "./product-form/types";
-import { materialToFormState, resolveMaterial } from "./product-form/types";
+import { CUSTOM_CATEGORY_ID, materialToFormState, resolveMaterial } from "./product-form/types";
 import { mapApiError, validateAll, type StepErrors } from "./product-form/validation";
 
 function buildInitialState(
@@ -26,7 +26,11 @@ function buildInitialState(
     price: initial?.price != null ? String(initial.price) : "",
     promoPrice: initial?.promoPrice != null ? String(initial.promoPrice) : "",
     isLaunch: initial?.isLaunch ?? false,
-    categoryId: initial?.categoryId ?? categories[0]?.id ?? "",
+    categoryId:
+      initial?.categoryId ??
+      categories[0]?.id ??
+      (categories.length === 0 ? CUSTOM_CATEGORY_ID : ""),
+    customCategoryName: "",
     ...materialFields,
     images: initial?.images ?? [],
   };
@@ -113,21 +117,38 @@ export function ProductForm({
     setBusy(true);
     setSaveError("");
 
-    const payload = {
-      name: state.name.trim(),
-      description: state.description.trim(),
-      price: Number(state.price),
-      promoPrice: state.promoPrice.trim() ? Number(state.promoPrice) : null,
-      isLaunch: state.isLaunch,
-      categoryId: state.categoryId,
-      material: resolveMaterial(state),
-      images: state.images.map((img, i) => ({
-        url: img.url,
-        sortOrder: i,
-      })),
-    };
-
     try {
+      let categoryId = state.categoryId;
+      if (categoryId === CUSTOM_CATEGORY_ID) {
+        const catRes = await fetch("/api/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: state.customCategoryName.trim() }),
+        });
+        const catData = await parseApiResponse(catRes);
+        if (!catRes.ok) {
+          throw new Error(String(catData.error || "Erro ao criar categoria"));
+        }
+        if (typeof catData.id !== "string") {
+          throw new Error("Resposta inválida ao criar categoria.");
+        }
+        categoryId = catData.id;
+      }
+
+      const payload = {
+        name: state.name.trim(),
+        description: state.description.trim(),
+        price: Number(state.price),
+        promoPrice: state.promoPrice.trim() ? Number(state.promoPrice) : null,
+        isLaunch: state.isLaunch,
+        categoryId,
+        material: resolveMaterial(state),
+        images: state.images.map((img, i) => ({
+          url: img.url,
+          sortOrder: i,
+        })),
+      };
+
       const res = await fetch(
         isEdit ? `/api/products/${initial!.id}` : "/api/products",
         {

@@ -1,5 +1,5 @@
 import type { ProductFormState } from "./types";
-import { resolveMaterial } from "./types";
+import { CUSTOM_CATEGORY_ID, resolveMaterial } from "./types";
 
 export type StepErrors = Record<string, string>;
 
@@ -21,6 +21,13 @@ export function validateBasicInfo(state: ProductFormState): StepErrors {
     }
   }
   if (!state.categoryId) errors.categoryId = "Selecione uma categoria.";
+  if (state.categoryId === CUSTOM_CATEGORY_ID) {
+    if (!state.customCategoryName.trim()) {
+      errors.customCategoryName = "Informe o nome da categoria personalizada.";
+    } else if (state.customCategoryName.trim().length < 2) {
+      errors.customCategoryName = "Nome da categoria muito curto.";
+    }
+  }
 
   return errors;
 }

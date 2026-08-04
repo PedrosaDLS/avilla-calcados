@@ -4,7 +4,7 @@ import Image from "next/image";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import type { Category, ProductFormState } from "./types";
-import { resolveMaterial } from "./types";
+import { resolveCategoryName, resolveMaterial } from "./types";
 
 type PreviewProduct = {
   id: string;
@@ -23,7 +23,7 @@ export function buildPreviewProduct(
   state: ProductFormState,
   categories: Category[]
 ): PreviewProduct {
-  const category = categories.find((c) => c.id === state.categoryId);
+  const categoryName = resolveCategoryName(state, categories);
 
   return {
     id: "preview",
@@ -34,7 +34,7 @@ export function buildPreviewProduct(
     promoPrice: state.promoPrice.trim() ? Number(state.promoPrice) : null,
     isLaunch: state.isLaunch,
     material: resolveMaterial(state),
-    category: { name: category?.name ?? "Categoria" },
+    category: { name: categoryName || "Categoria" },
     images: state.images.map((img, i) => ({
       id: `preview-img-${i}`,
       url: img.url,
@@ -114,7 +114,7 @@ export function ReviewSummary({
   state: ProductFormState;
   categories: Category[];
 }) {
-  const category = categories.find((c) => c.id === state.categoryId);
+  const categoryName = resolveCategoryName(state, categories);
   const material = resolveMaterial(state);
 
   return (
@@ -127,7 +127,7 @@ export function ReviewSummary({
         </div>
         <div className="flex justify-between gap-4">
           <dt>Categoria</dt>
-          <dd className="text-right text-[var(--ink)]">{category?.name ?? "—"}</dd>
+          <dd className="text-right text-[var(--ink)]">{categoryName || "—"}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt>Preço</dt>

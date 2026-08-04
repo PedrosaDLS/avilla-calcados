@@ -1,5 +1,7 @@
 export type Category = { id: string; name: string };
 
+export const CUSTOM_CATEGORY_ID = "__custom__";
+
 export type ImageEntry = { url: string };
 
 export const PRESET_MATERIALS = [
@@ -28,6 +30,7 @@ export type ProductFormState = {
   promoPrice: string;
   isLaunch: boolean;
   categoryId: string;
+  customCategoryName: string;
   materialType: "preset" | "custom" | "";
   materialPreset: string;
   materialCustom: string;
@@ -38,6 +41,16 @@ export function resolveMaterial(state: ProductFormState): string {
   if (state.materialType === "custom") return state.materialCustom.trim();
   if (state.materialType === "preset") return state.materialPreset;
   return "";
+}
+
+export function resolveCategoryName(
+  state: ProductFormState,
+  categories: Category[]
+): string {
+  if (state.categoryId === CUSTOM_CATEGORY_ID) {
+    return state.customCategoryName.trim();
+  }
+  return categories.find((c) => c.id === state.categoryId)?.name ?? "";
 }
 
 export function materialToFormState(material?: string): Pick<

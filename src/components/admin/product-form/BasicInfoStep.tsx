@@ -1,5 +1,5 @@
 import { Field, inputClass } from "./Field";
-import type { Category, ProductFormState } from "./types";
+import { CUSTOM_CATEGORY_ID, type Category, type ProductFormState } from "./types";
 import type { StepErrors } from "./validation";
 
 type Props = {
@@ -10,6 +10,8 @@ type Props = {
 };
 
 export function BasicInfoStep({ state, categories, errors, onChange }: Props) {
+  const isCustomCategory = state.categoryId === CUSTOM_CATEGORY_ID;
+
   return (
     <div className="space-y-5">
       <Field
@@ -74,21 +76,51 @@ export function BasicInfoStep({ state, categories, errors, onChange }: Props) {
       <Field
         id="product-category"
         label="Categoria"
-        error={errors.categoryId}
+        hint="Escolha uma existente ou crie uma personalizada."
+        error={errors.categoryId || errors.customCategoryName}
       >
         <select
           id="product-category"
           value={state.categoryId}
-          onChange={(e) => onChange("categoryId", e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            onChange("categoryId", value);
+            if (value !== CUSTOM_CATEGORY_ID) {
+              onChange("customCategoryName", "");
+            }
+          }}
           className={inputClass}
         >
+          {!state.categoryId ? (
+            <option value="" disabled>
+              Selecione…
+            </option>
+          ) : null}
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
+          <option value={CUSTOM_CATEGORY_ID}>Personalizado…</option>
         </select>
       </Field>
+
+      {isCustomCategory ? (
+        <Field
+          id="product-category-custom"
+          label="Nome da categoria"
+          error={errors.customCategoryName}
+        >
+          <input
+            id="product-category-custom"
+            value={state.customCategoryName}
+            onChange={(e) => onChange("customCategoryName", e.target.value)}
+            className={inputClass}
+            placeholder="Ex.: Papete, Mule, Chinelo…"
+            autoFocus
+          />
+        </Field>
+      ) : null}
 
       <div className="rounded-xl border border-[var(--line)] bg-[var(--bg-elevated)] px-4 py-3">
         <label className="flex cursor-pointer items-start gap-3">
