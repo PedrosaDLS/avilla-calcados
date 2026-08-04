@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import { DeleteProductButton } from "./DeleteProductButton";
 import { HideProductButton } from "./HideProductButton";
+import { CopyLinkButton } from "./CopyLinkButton";
 import { RoundedSlideButton } from "@/components/ui/RoundedSlideButton";
 import { AdminModelosToolbar } from "./AdminModelosToolbar";
 
@@ -26,21 +27,27 @@ export default async function AdminModelosPage({ searchParams }: Props) {
   const q = sp.q?.trim() ?? "";
   const sort = sp.sort === "views" ? "views" : "recent";
 
-  const products = await prisma.product.findMany({
-    where: q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { category: { name: { contains: q, mode: "insensitive" } } },
-          ],
-        }
-      : undefined,
-    include: {
-      category: true,
-      images: { orderBy: { sortOrder: "asc" }, take: 1 },
-    },
-    orderBy: sort === "views" ? { viewCount: "desc" } : { createdAt: "desc" },
-  });
+  const [products, categories] = await Promise.all([
+    prisma.product.findMany({
+      where: q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { category: { name: { contains: q, mode: "insensitive" } } },
+            ],
+          }
+        : undefined,
+      include: {
+        category: true,
+        images: { orderBy: { sortOrder: "asc" }, take: 1 },
+      },
+      orderBy: sort === "views" ? { viewCount: "desc" } : { createdAt: "desc" },
+    }),
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, slug: true },
+    }),
+  ]);
 
   return (
     <div>
@@ -60,6 +67,23 @@ export default async function AdminModelosPage({ searchParams }: Props) {
       <Suspense fallback={<ToolbarFallback />}>
         <AdminModelosToolbar key={`${q}-${sort}`} initialQuery={q} initialSort={sort} />
       </Suspense>
+
+      {categories.length ? (
+        <div className="mb-6">
+          <p className="mb-2 text-sm text-[var(--muted)]">Copiar link da coleção por categoria</p>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <CopyLinkButton
+                key={c.id}
+                variant="chip"
+                label={c.name}
+                path={`/colecao?categoria=${encodeURIComponent(c.slug)}`}
+                title={`Copiar link da coleção filtrada por ${c.name}`}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {products.length ? (
         <ul className="space-y-2">
@@ -109,6 +133,10 @@ export default async function AdminModelosPage({ searchParams }: Props) {
                     Editar
                   </Link>
                   <HideProductButton id={p.id} isHidden={p.isHidden} />
+                  <CopyLinkButton
+                    path={`/modelo/${p.slug}`}
+                    title={`Copiar link da página de ${p.name}`}
+                  />
                   <DeleteProductButton id={p.id} name={p.name} />
                 </div>
               </div>
