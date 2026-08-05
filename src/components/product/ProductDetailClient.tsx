@@ -198,18 +198,36 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
         )}
 
         <div className="mt-6 flex items-center gap-3">
-          <label className="text-sm text-[var(--muted)]" htmlFor="qty">
+          <span className="text-sm text-[var(--muted)]" id="qty-label">
             Qtd
-          </label>
-          <input
-            id="qty"
-            type="number"
-            min={1}
-            max={20}
-            value={qty}
-            onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-            className="w-20 border border-[var(--line)] bg-transparent px-3 py-2"
-          />
+          </span>
+          <div
+            className="inline-flex items-center border border-[var(--line)]"
+            role="group"
+            aria-labelledby="qty-label"
+          >
+            <button
+              type="button"
+              aria-label="Diminuir quantidade"
+              disabled={qty <= 1}
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              className="flex h-10 w-10 items-center justify-center text-lg leading-none disabled:opacity-40"
+            >
+              −
+            </button>
+            <span className="min-w-8 text-center text-sm tabular-nums" aria-live="polite">
+              {qty}
+            </span>
+            <button
+              type="button"
+              aria-label="Aumentar quantidade"
+              disabled={qty >= 20}
+              onClick={() => setQty((q) => Math.min(20, q + 1))}
+              className="flex h-10 w-10 items-center justify-center text-lg leading-none disabled:opacity-40"
+            >
+              +
+            </button>
+          </div>
         </div>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">

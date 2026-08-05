@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   return (
-    <div className="mx-auto min-h-[70vh] max-w-5xl px-4 pb-24 pt-6 md:px-6 md:pb-10">
+    <div className="mx-auto min-h-[70vh] max-w-5xl px-4 pb-10 pt-6 md:px-6">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">Admin</p>
@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         </Link>
       </div>
 
-      <nav className="mb-8 hidden gap-2 md:flex">
+      <nav className="mb-8 flex flex-wrap gap-2">
         {links.map((l) => (
           <Link
             key={l.href}
@@ -43,18 +43,6 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       </nav>
 
       {children}
-
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-[var(--line)] bg-[var(--bg)]/95 backdrop-blur md:hidden">
-        {links.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className="flex-1 py-3 text-center text-xs tracking-wide"
-          >
-            {l.label}
-          </Link>
-        ))}
-      </nav>
     </div>
   );
 }
