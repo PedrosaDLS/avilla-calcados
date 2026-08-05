@@ -5,6 +5,8 @@ import { generateProductDescription } from "@/lib/mistral-describe";
 
 const bodySchema = z.object({
   imageUrl: z.string().min(1),
+  name: z.string().trim().min(1).optional(),
+  category: z.string().trim().min(1).optional(),
 });
 
 export async function POST(req: Request) {
@@ -21,10 +23,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const { imageUrl } = bodySchema.parse(await req.json());
+  const { imageUrl, name, category } = bodySchema.parse(await req.json());
 
   try {
-    const description = await generateProductDescription(imageUrl, apiKey);
+    const description = await generateProductDescription(imageUrl, apiKey, {
+      name,
+      category,
+    });
     return NextResponse.json({ description });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao gerar descrição.";

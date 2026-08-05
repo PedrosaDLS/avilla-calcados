@@ -23,7 +23,10 @@ export function DescriptionStep({ state, onChange }: Props) {
       const res = await fetch("/api/admin/describe-product", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: state.images[0]!.url }),
+        body: JSON.stringify({
+          imageUrl: state.images[0]!.url,
+          name: state.name.trim() || undefined,
+        }),
       });
       const data = await parseApiResponse(res);
       if (!res.ok) {
