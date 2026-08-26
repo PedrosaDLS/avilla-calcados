@@ -225,15 +225,12 @@ export function getMockFilterOptions() {
 }
 
 export function getMockHomePageData() {
-  const heroProducts = [...products]
-    .filter((product) => product.images.length > 0 && (product.isLaunch || product.viewCount > 0))
-    .sort((a, b) => {
-      if (a.isLaunch !== b.isLaunch) return a.isLaunch ? -1 : 1;
-      return b.viewCount - a.viewCount;
-    })
-    .slice(0, 12);
+  const featured = products.filter((product) => product.isLaunch);
+  const heroProducts = featured
+    .filter((product) => product.images.length > 0)
+    .sort((a, b) => b.viewCount - a.viewCount);
 
-  const highlights = [...products].sort((a, b) => b.viewCount - a.viewCount).slice(0, 8);
+  const highlights = [...featured].sort((a, b) => b.viewCount - a.viewCount).slice(0, 8);
 
   return {
     heroProducts: heroProducts.map((product) => ({

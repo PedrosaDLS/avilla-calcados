@@ -1,9 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 type SortKey = "recent" | "views";
+type FilterKey = "all" | "destaque";
+
+const SEARCH_DEBOUNCE_MS = 500;
 
 const controlClass =
   "h-11 w-full border border-[var(--line)] bg-[var(--bg)] px-3 text-sm text-[var(--ink)] outline-none transition-[border-color] duration-150 placeholder:text-[var(--muted)] focus-visible:border-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
@@ -11,9 +14,11 @@ const controlClass =
 export function AdminModelosToolbar({
   initialQuery = "",
   initialSort = "recent",
+  initialFilter = "all",
 }: {
   initialQuery?: string;
   initialSort?: SortKey;
+  initialFilter?: FilterKey;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -21,10 +26,23 @@ export function AdminModelosToolbar({
   const [pending, startTransition] = useTransition();
   const [value, setValue] = useState(initialQuery);
   const [sort, setSort] = useState<SortKey>(initialSort);
+  const [filter, setFilter] = useState<FilterKey>(initialFilter);
+  const searchParamsRef = useRef(searchParams);
+  const sortRef = useRef(sort);
+  const filterRef = useRef(filter);
+  const lastCommittedRef = useRef({
+    q: initialQuery.trim(),
+    sort: initialSort,
+    filter: initialFilter,
+  });
+
+  searchParamsRef.current = searchParams;
+  sortRef.current = sort;
+  filterRef.current = filter;
 
   const pushParams = useCallback(
-    (nextQuery: string, nextSort: SortKey) => {
-      const params = new URLSearchParams(searchParams.toString());
+    (nextQuery: string, nextSort: SortKey, nextFilter: FilterKey) => {
+      const params = new URLSearchParams(searchParamsRef.current.toString());
       const trimmed = nextQuery.trim();
 
       if (trimmed) params.set("q", trimmed);
@@ -33,34 +51,59 @@ export function AdminModelosToolbar({
       if (nextSort === "views") params.set("sort", "views");
       else params.delete("sort");
 
-      // Search/sort always returns to first page.
+      if (nextFilter === "destaque") params.set("destaque", "1");
+      else params.delete("destaque");
+
       params.delete("page");
 
+      lastCommittedRef.current = { q: trimmed, sort: nextSort, filter: nextFilter };
       startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
       });
     },
-    [pathname, router, searchParams]
+    [pathname, router]
   );
 
   useEffect(() => {
+    const urlQ = searchParams.get("q") ?? "";
+    const urlSort: SortKey = searchParams.get("sort") === "views" ? "views" : "recent";
+    const urlFilter: FilterKey = searchParams.get("destaque") === "1" ? "destaque" : "all";
+    if (
+      urlQ === lastCommittedRef.current.q &&
+      urlSort === lastCommittedRef.current.sort &&
+      urlFilter === lastCommittedRef.current.filter
+    ) {
+      return;
+    }
+    lastCommittedRef.current = { q: urlQ, sort: urlSort, filter: urlFilter };
+    setValue(urlQ);
+    setSort(urlSort);
+    setFilter(urlFilter);
+  }, [searchParams]);
+
+  useEffect(() => {
     const timeout = setTimeout(() => {
-      const current = searchParams.get("q") ?? "";
+      const current = searchParamsRef.current.get("q") ?? "";
       if (value.trim() === current.trim()) return;
-      pushParams(value, sort);
-    }, 350);
+      pushParams(value, sortRef.current, filterRef.current);
+    }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);
-  }, [value, sort, pushParams, searchParams]);
+  }, [value, pushParams]);
 
   const onSortChange = (nextSort: SortKey) => {
     setSort(nextSort);
-    pushParams(value, nextSort);
+    pushParams(value, nextSort, filter);
+  };
+
+  const onFilterChange = (nextFilter: FilterKey) => {
+    setFilter(nextFilter);
+    pushParams(value, sort, nextFilter);
   };
 
   const clear = () => {
     setValue("");
-    pushParams("", sort);
+    pushParams("", sort, filter);
   };
 
   return (
@@ -91,6 +134,19 @@ export function AdminModelosToolbar({
           </button>
         ) : null}
       </div>
+
+      <label className="flex w-full shrink-0 flex-col gap-1.5 text-sm text-[var(--muted)] sm:w-auto sm:flex-row sm:items-center sm:gap-2">
+        <span className="whitespace-nowrap">Filtrar</span>
+        <select
+          value={filter}
+          onChange={(e) => onFilterChange(e.target.value as FilterKey)}
+          className={`${controlClass} sm:w-44`}
+          aria-label="Filtrar modelos"
+        >
+          <option value="all">Todos</option>
+          <option value="destaque">Só destaques</option>
+        </select>
+      </label>
 
       <label className="flex w-full shrink-0 flex-col gap-1.5 text-sm text-[var(--muted)] sm:w-auto sm:flex-row sm:items-center sm:gap-2">
         <span className="whitespace-nowrap">Ordenar</span>

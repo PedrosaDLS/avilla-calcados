@@ -14,22 +14,20 @@ import {
 } from "@/lib/products";
 
 const HIGHLIGHTS_LIMIT = 8;
-const HERO_LIMIT = 12;
 
 async function fetchHomePageData() {
+  const featuredWhere = { isHidden: false, isLaunch: true };
   const [heroProducts, highlights] = await Promise.all([
     prisma.product.findMany({
       where: {
-        isHidden: false,
+        ...featuredWhere,
         images: { some: {} },
-        OR: [{ isLaunch: true }, { viewCount: { gt: 0 } }],
       },
       include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
-      orderBy: [{ isLaunch: "desc" }, { viewCount: "desc" }],
-      take: HERO_LIMIT,
+      orderBy: { viewCount: "desc" },
     }),
     prisma.product.findMany({
-      where: { isHidden: false },
+      where: featuredWhere,
       include: productCardInclude,
       orderBy: { viewCount: "desc" },
       take: HIGHLIGHTS_LIMIT,

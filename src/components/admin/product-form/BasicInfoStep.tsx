@@ -133,7 +133,7 @@ export function BasicInfoStep({ state, categories, errors, onChange }: Props) {
           <span>
             <span className="block text-sm font-medium">Lançamento</span>
             <span className="text-xs text-[var(--muted)]">
-              Destaca o modelo na página inicial da loja.
+              Entra no shuffle do Hero e compete pelos 8 destaques da home, ordenados por visualizações.
             </span>
           </span>
         </label>

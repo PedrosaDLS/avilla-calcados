@@ -93,7 +93,13 @@ export async function PATCH(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   const { id } = await params;
-  const body = z.object({ isHidden: z.boolean() }).parse(await req.json());
+  const body = z
+    .object({
+      isHidden: z.boolean().optional(),
+      isLaunch: z.boolean().optional(),
+    })
+    .refine((b) => b.isHidden != null || b.isLaunch != null)
+    .parse(await req.json());
 
   const existing = await prisma.product.findUnique({
     where: { id },
@@ -103,9 +109,13 @@ export async function PATCH(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
   }
 
+  const data: { isHidden?: boolean; isLaunch?: boolean } = {};
+  if (body.isHidden != null) data.isHidden = body.isHidden;
+  if (body.isLaunch != null) data.isLaunch = body.isLaunch;
+
   const full = await prisma.product.update({
     where: { id },
-    data: { isHidden: body.isHidden },
+    data,
     include: { images: true, category: true },
   });
 
