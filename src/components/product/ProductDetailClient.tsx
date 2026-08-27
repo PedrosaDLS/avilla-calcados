@@ -121,129 +121,165 @@ export function ProductDetailClient({ product }: { product: ProductDetail }) {
     }
   }
 
+  function goBack() {
+    try {
+      const fromSameOrigin =
+        Boolean(document.referrer) &&
+        new URL(document.referrer).origin === window.location.origin;
+      if (fromSameOrigin) {
+        router.back();
+        return;
+      }
+    } catch {
+      // ignore invalid referrer
+    }
+    router.push("/colecao");
+  }
+
   return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-2 md:gap-10 md:px-6 md:py-14">
-      <div className="min-w-0">
-        <div className="product-card-frame relative border border-[var(--line)] bg-[var(--bg-elevated)] p-2 md:p-3">
-          <div className="product-detail-gallery relative aspect-[4/5] w-full overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]/60 md:aspect-[3/4]">
-            {activeImg ? (
-              <Image
-                key={activeImg}
-                src={activeImg}
-                alt={product.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-            ) : null}
-            {hasMultiple && (
-              <>
-                <GalleryArrow direction="prev" onClick={goPrev} label="Imagem anterior" />
-                <GalleryArrow direction="next" onClick={goNext} label="Próxima imagem" />
-              </>
-            )}
-          </div>
-        </div>
+    <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-14">
+      <button
+        type="button"
+        onClick={goBack}
+        aria-label="Voltar à página anterior"
+        className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] md:mb-8"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="h-5 w-5 shrink-0"
+          aria-hidden
+        >
+          <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Voltar
+      </button>
 
-        {hasMultiple && (
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {gallery.map((img, i) => (
-              <button
-                key={img.id}
-                type="button"
-                onClick={() => setActiveIndex(i)}
-                aria-label={`Ver imagem ${i + 1} de ${gallery.length}`}
-                aria-current={activeIndex === i ? "true" : undefined}
-                className={`product-card-frame shrink-0 border p-1 transition-[border-color,box-shadow] duration-300 ${
-                  activeIndex === i
-                    ? "border-[var(--accent)]"
-                    : "border-[var(--line)] hover:border-[var(--accent)]/60"
-                }`}
-              >
-                <span className="relative block h-20 w-16 overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]/60">
-                  <Image src={img.url} alt="" fill className="object-cover" sizes="64px" />
-                </span>
-              </button>
-            ))}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10">
+        <div className="min-w-0">
+          <div className="product-card-frame relative border border-[var(--line)] bg-[var(--bg-elevated)] p-2 md:p-3">
+            <div className="product-detail-gallery relative aspect-[4/5] w-full overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]/60 md:aspect-[3/4]">
+              {activeImg ? (
+                <Image
+                  key={activeImg}
+                  src={activeImg}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority
+                />
+              ) : null}
+              {hasMultiple && (
+                <>
+                  <GalleryArrow direction="prev" onClick={goPrev} label="Imagem anterior" />
+                  <GalleryArrow direction="next" onClick={goNext} label="Próxima imagem" />
+                </>
+              )}
+            </div>
           </div>
-        )}
-      </div>
 
-      <div className="min-w-0">
-        <p className="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">
-          {product.category.name}
-          {product.isLaunch ? " · Lançamento" : ""}
-        </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-tight md:text-5xl">
-          {product.name}
-        </h1>
-        <div className="mt-4 flex flex-wrap items-baseline gap-3">
-          <span className={`text-xl md:text-2xl ${hasPromo ? "text-[var(--accent)]" : ""}`}>
-            {formatBRL(price)}
-          </span>
-          {hasPromo && (
-            <span className="text-sm text-[var(--muted)] line-through md:text-base">
-              {formatBRL(Number(product.price))}
-            </span>
+          {hasMultiple && (
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+              {gallery.map((img, i) => (
+                <button
+                  key={img.id}
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  aria-label={`Ver imagem ${i + 1} de ${gallery.length}`}
+                  aria-current={activeIndex === i ? "true" : undefined}
+                  className={`product-card-frame shrink-0 border p-1 transition-[border-color,box-shadow] duration-300 ${
+                    activeIndex === i
+                      ? "border-[var(--accent)]"
+                      : "border-[var(--line)] hover:border-[var(--accent)]/60"
+                  }`}
+                >
+                  <span className="relative block h-20 w-16 overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]/60">
+                    <Image src={img.url} alt="" fill className="object-cover" sizes="64px" />
+                  </span>
+                </button>
+              ))}
+            </div>
           )}
         </div>
-        {product.material && (
-          <p className="mt-5 text-sm text-[var(--muted)]">
-            Material: <span className="text-[var(--ink)]">{product.material}</span>
+
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">
+            {product.category.name}
+            {product.isLaunch ? " · Lançamento" : ""}
           </p>
-        )}
-        {product.description && (
-          <MarkdownContent content={product.description} className="mt-5 md:mt-6" />
-        )}
-
-        <div className="mt-6 flex items-center gap-3">
-          <span className="text-sm text-[var(--muted)]" id="qty-label">
-            Qtd
-          </span>
-          <div
-            className="inline-flex items-center border border-[var(--line)]"
-            role="group"
-            aria-labelledby="qty-label"
-          >
-            <button
-              type="button"
-              aria-label="Diminuir quantidade"
-              disabled={qty <= 1}
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="flex h-10 w-10 items-center justify-center text-lg leading-none disabled:opacity-40"
-            >
-              −
-            </button>
-            <span className="min-w-8 text-center text-sm tabular-nums" aria-live="polite">
-              {qty}
+          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-tight md:text-5xl">
+            {product.name}
+          </h1>
+          <div className="mt-4 flex flex-wrap items-baseline gap-3">
+            <span className={`text-xl md:text-2xl ${hasPromo ? "text-[var(--accent)]" : ""}`}>
+              {formatBRL(price)}
             </span>
-            <button
-              type="button"
-              aria-label="Aumentar quantidade"
-              disabled={qty >= 20}
-              onClick={() => setQty((q) => Math.min(20, q + 1))}
-              className="flex h-10 w-10 items-center justify-center text-lg leading-none disabled:opacity-40"
-            >
-              +
-            </button>
+            {hasPromo && (
+              <span className="text-sm text-[var(--muted)] line-through md:text-base">
+                {formatBRL(Number(product.price))}
+              </span>
+            )}
           </div>
-        </div>
+          {product.material && (
+            <p className="mt-5 text-sm text-[var(--muted)]">
+              Material: <span className="text-[var(--ink)]">{product.material}</span>
+            </p>
+          )}
+          {product.description && (
+            <MarkdownContent content={product.description} className="mt-5 md:mt-6" />
+          )}
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <RoundedSlideButton type="button" disabled={busy} onClick={addToCart}>
-            {busy ? "Adicionando..." : "Adicionar ao carrinho"}
-          </RoundedSlideButton>
-          <WhatsAppButton
-            item={{
-              name: product.name,
-              slug: product.slug,
-              qty,
-            }}
-            className="sm:flex-1"
-          />
+          <div className="mt-6 flex items-center gap-3">
+            <span className="text-sm text-[var(--muted)]" id="qty-label">
+              Qtd
+            </span>
+            <div
+              className="inline-flex items-center border border-[var(--line)]"
+              role="group"
+              aria-labelledby="qty-label"
+            >
+              <button
+                type="button"
+                aria-label="Diminuir quantidade"
+                disabled={qty <= 1}
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="flex h-10 w-10 items-center justify-center text-lg leading-none disabled:opacity-40"
+              >
+                −
+              </button>
+              <span className="min-w-8 text-center text-sm tabular-nums" aria-live="polite">
+                {qty}
+              </span>
+              <button
+                type="button"
+                aria-label="Aumentar quantidade"
+                disabled={qty >= 20}
+                onClick={() => setQty((q) => Math.min(20, q + 1))}
+                className="flex h-10 w-10 items-center justify-center text-lg leading-none disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <RoundedSlideButton type="button" disabled={busy} onClick={addToCart}>
+              {busy ? "Adicionando..." : "Adicionar ao carrinho"}
+            </RoundedSlideButton>
+            <WhatsAppButton
+              item={{
+                name: product.name,
+                slug: product.slug,
+                qty,
+              }}
+              className="sm:flex-1"
+            />
+          </div>
+          {msg && <p className="mt-3 text-sm text-[var(--muted)]">{msg}</p>}
         </div>
-        {msg && <p className="mt-3 text-sm text-[var(--muted)]">{msg}</p>}
       </div>
     </div>
   );

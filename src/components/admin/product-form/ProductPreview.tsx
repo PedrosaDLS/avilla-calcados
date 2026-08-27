@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { formatBRL, effectivePrice } from "@/lib/utils";
 import type { Category, ProductFormState } from "./types";
 import { resolveCategoryName, resolveMaterial } from "./types";
 
-type PreviewProduct = {
+export type PreviewProduct = {
   id: string;
   name: string;
   slug: string;
@@ -44,24 +45,32 @@ export function buildPreviewProduct(
 
 export function ProductPreview({
   product,
+  showLabel = true,
 }: {
   product: PreviewProduct;
+  showLabel?: boolean;
 }) {
-  const activeImg = product.images[0]?.url ?? null;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const gallery = product.images;
+  const activeImg = gallery[activeIndex]?.url ?? gallery[0]?.url ?? null;
+  const hasMultiple = gallery.length > 1;
   const price = effectivePrice(product.price, product.promoPrice);
   const hasPromo =
     product.promoPrice != null && product.promoPrice < product.price;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--bg-elevated)]">
-      <p className="border-b border-[var(--line)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-        Pré-visualização na loja
-      </p>
+    <div className="overflow-hidden border border-[var(--line)] bg-[var(--bg-elevated)]">
+      {showLabel ? (
+        <p className="border-b border-[var(--line)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+          Pré-visualização na loja
+        </p>
+      ) : null}
       <div className="grid grid-cols-1 gap-5 p-4 md:grid-cols-2 md:gap-6">
         <div className="min-w-0">
-          <div className="product-detail-gallery relative aspect-[4/5] w-full overflow-hidden bg-[var(--sand)] md:aspect-[3/4]">
+          <div className="product-detail-gallery relative aspect-[4/5] w-full overflow-hidden bg-[var(--sand)] ring-1 ring-[var(--line)]/60 md:aspect-[3/4]">
             {activeImg ? (
               <Image
+                key={activeImg}
                 src={activeImg}
                 alt={product.name}
                 fill
@@ -74,6 +83,28 @@ export function ProductPreview({
               </div>
             )}
           </div>
+          {hasMultiple ? (
+            <div className="mt-3 flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch]">
+              {gallery.map((img, i) => (
+                <button
+                  key={img.id}
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  aria-label={`Ver imagem ${i + 1} de ${gallery.length}`}
+                  aria-current={activeIndex === i ? "true" : undefined}
+                  className={`min-h-11 shrink-0 border p-1 transition-[border-color] duration-200 [-webkit-tap-highlight-color:transparent] ${
+                    activeIndex === i
+                      ? "border-[var(--accent)]"
+                      : "border-[var(--line)] hover:border-[var(--accent)]/60"
+                  }`}
+                >
+                  <span className="relative block h-16 w-12 overflow-hidden bg-[var(--sand)]">
+                    <Image src={img.url} alt="" fill className="object-cover" sizes="48px" />
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">

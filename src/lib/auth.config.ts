@@ -32,7 +32,12 @@ declare module "@auth/core/jwt" {
 export const authConfig = {
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   trustHost: true,
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    // Browser cookie cap ~400d. Visit after updateAge extends the JWT; does not invalidate existing sessions.
+    maxAge: 60 * 60 * 24 * 400,
+    updateAge: 60 * 60 * 24,
+  },
   pages: {
     signIn: "/login",
   },
